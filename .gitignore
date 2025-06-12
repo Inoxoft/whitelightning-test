@@ -1,0 +1,8 @@
+.idea/
+api_requests/
+.env
+.venv
+__pycache__/
+venv/
+.DS_Store
+.secrets.baseline

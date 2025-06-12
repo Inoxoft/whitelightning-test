@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  onnx-tester-remote:
+    image: onnx-model-tester:latest
+    container_name: onnx-model-tester-remote
+    restart: unless-stopped
+    volumes:
+      # Remote model storage - adjust paths as needed
+      - /data/models:/app/models
+      - /data/outputs:/app/outputs
+      # Environment file
+      - ./.env:/app/.env
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=production
+    # For remote access via API (if needed)
+    ports:
+      - "8000:8000"
+    # Keep container running
+    command: tail -f /dev/null
+    # Resource limits for production
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import onnx; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: Redis for caching (useful for remote deployments)
+  redis:
+    image: redis:7-alpine
+    container_name: onnx-tester-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    profiles:
+      - cache
+
+volumes:
+  redis_data: 
