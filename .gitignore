@@ -1,6 +1,7 @@
 .idea/
 api_requests/
 .env
+wl_venv
 .venv
 __pycache__/
 venv/
