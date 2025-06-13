@@ -158,22 +158,136 @@ def test_binary_classifier():
 
 def test_custom_text(text):
     """Test model with custom text input"""
+    import time
+    
     model_path = Path(__file__).parent / "model.onnx"
     assert model_path.exists(), f"Model not found at {model_path}"
     
+    print("=" * 80)
+    print("🤖 ONNX BINARY CLASSIFIER - DETAILED ANALYSIS")
+    print("=" * 80)
+    
+    # Initialize tester and get model info
+    start_time = time.time()
     tester = ONNXModelTester(model_path)
     tester.test_model_loading()
     
+    # Get model information
+    input_info = tester.session.get_inputs()[0]
+    output_info = tester.session.get_outputs()[0]
+    
+    print(f"📝 INPUT TEXT:")
+    print(f"   '{text}'")
+    print(f"   Length: {len(text)} characters, {len(text.split())} words")
+    print()
+    
+    print("🔧 MODEL INFORMATION:")
+    print(f"   Model Path: {model_path}")
+    print(f"   Input Shape: {input_info.shape}")
+    print(f"   Input Type: {input_info.type}")
+    print(f"   Output Shape: {output_info.shape}")
+    print(f"   Output Type: {output_info.type}")
+    print(f"   Vocabulary Size: {len(tester.vocab['vocab'])}")
+    print()
+    
+    # Preprocessing analysis
+    print("🔍 PREPROCESSING ANALYSIS:")
+    words = text.lower().split()
+    print(f"   Original words: {words}")
+    
+    # Check which words are in vocabulary
+    vocab_words = []
+    unknown_words = []
+    for word in words:
+        if word in tester.vocab['vocab']:
+            vocab_words.append(word)
+        else:
+            unknown_words.append(word)
+    
+    print(f"   Words in vocabulary: {vocab_words}")
+    print(f"   Unknown words: {unknown_words}")
+    print(f"   Vocabulary coverage: {len(vocab_words)}/{len(words)} ({len(vocab_words)/len(words)*100:.1f}%)")
+    
     # Preprocess and run inference
+    preprocessing_start = time.time()
     input_vector = tester.preprocess_text(text)
+    preprocessing_time = time.time() - preprocessing_start
+    
+    print(f"   TF-IDF vector shape: {input_vector.shape}")
+    print(f"   Non-zero features: {np.count_nonzero(input_vector)}")
+    print(f"   Vector min/max: {input_vector.min():.4f} / {input_vector.max():.4f}")
+    print(f"   Preprocessing time: {preprocessing_time*1000:.2f}ms")
+    print()
+    
+    # Model inference
+    print("🚀 MODEL INFERENCE:")
+    inference_start = time.time()
     input_data = {tester.session.get_inputs()[0].name: input_vector.reshape(1, -1)}
     outputs = tester.session.run(None, input_data)
-    prediction = float(outputs[0][0][0])
+    inference_time = time.time() - inference_start
     
-    print(f"\nCustom Text Analysis:")
-    print(f"Input: {text}")
-    print(f"Prediction: {prediction}")
-    print(f"Sentiment: {'Positive' if prediction > 0.5 else 'Negative'} (confidence: {prediction:.2%})")
+    prediction = float(outputs[0][0][0])
+    raw_output = outputs[0][0][0]
+    
+    print(f"   Raw model output: {raw_output}")
+    print(f"   Sigmoid probability: {prediction:.6f}")
+    print(f"   Inference time: {inference_time*1000:.2f}ms")
+    print()
+    
+    # Results analysis
+    print("📊 SENTIMENT ANALYSIS RESULTS:")
+    print("   " + "─" * 50)
+    
+    if prediction > 0.8:
+        sentiment_emoji = "😍"
+        sentiment_desc = "Very Positive"
+        color = "🟢"
+    elif prediction > 0.6:
+        sentiment_emoji = "😊"
+        sentiment_desc = "Positive"
+        color = "🟢"
+    elif prediction > 0.4:
+        sentiment_emoji = "😐"
+        sentiment_desc = "Neutral"
+        color = "🟡"
+    elif prediction > 0.2:
+        sentiment_emoji = "😞"
+        sentiment_desc = "Negative"
+        color = "🔴"
+    else:
+        sentiment_emoji = "😡"
+        sentiment_desc = "Very Negative"
+        color = "🔴"
+    
+    print(f"   {sentiment_emoji} SENTIMENT: {sentiment_desc}")
+    print(f"   {color} CONFIDENCE: {prediction:.2%}")
+    print(f"   📈 PROBABILITY SCORE: {prediction:.6f}")
+    
+    # Confidence bar
+    bar_length = 40
+    filled_length = int(bar_length * prediction)
+    bar = "█" * filled_length + "░" * (bar_length - filled_length)
+    print(f"   📊 CONFIDENCE BAR: |{bar}| {prediction:.1%}")
+    print()
+    
+    # Performance summary
+    total_time = time.time() - start_time
+    print("⚡ PERFORMANCE SUMMARY:")
+    print(f"   Total processing time: {total_time*1000:.2f}ms")
+    print(f"   Preprocessing: {preprocessing_time*1000:.2f}ms ({preprocessing_time/total_time*100:.1f}%)")
+    print(f"   Model inference: {inference_time*1000:.2f}ms ({inference_time/total_time*100:.1f}%)")
+    print(f"   Throughput: {1/total_time:.1f} texts/second")
+    print()
+    
+    # Classification thresholds
+    print("🎯 CLASSIFICATION THRESHOLDS:")
+    print("   Negative: 0.0 ─────── 0.5 ─────── 1.0 :Positive")
+    threshold_pos = int(prediction * 40)
+    threshold_bar = " " * threshold_pos + "▲" + " " * (40 - threshold_pos)
+    print(f"   Current: |{threshold_bar}|")
+    print(f"   Your text is {abs(prediction - 0.5)*2:.1%} away from neutral")
+    
+    print("=" * 80)
 
 if __name__ == "__main__":
     import sys
