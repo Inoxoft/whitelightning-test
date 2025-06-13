@@ -11,10 +11,10 @@ on:
       model_type:
         description: 'Model type to test'
         required: true
-        default: 'customer_feedback'
+        default: 'binary_classifier'
         type: choice
         options:
-          - customer_feedback
+          - binary_classifier
           - news_classifier
       language:
         description: 'Programming language to test'
@@ -50,12 +50,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r tests/customer_feedback/python/requirements.txt
+          pip install -r tests/binary_classifier/python/requirements.txt
           
       - name: Run Python Tests
         if: ${{ inputs.language == 'python' }}
         run: |
-          cd tests/customer_feedback/python
+          cd tests/binary_classifier/python
           if [ -n "${{ inputs.custom_text }}" ]; then
             echo "Testing custom text: ${{ inputs.custom_text }}"
             python -c "from test_onnx_model import test_custom_text; test_custom_text('${{ inputs.custom_text }}')"
@@ -67,11 +67,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-test-results
-          path: tests/customer_feedback/python/performance_results.json
+          path: tests/binary_classifier/python/performance_results.json
           
       - name: Check performance thresholds
         run: |
-          cd tests/customer_feedback/python
+          cd tests/binary_classifier/python
           if [ -f performance_results.json ]; then
             echo "✅ Performance within acceptable thresholds"
           else
@@ -94,8 +94,8 @@ jobs:
         
     - name: Build with Maven
       run: |
-        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "customer_feedback" ]; then
-          cd tests/customer_feedback/java
+        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "spam_detector" ]; then
+          cd tests/spam_detector/java
           mvn clean install
         fi
         if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "news_classifier" ]; then
@@ -105,8 +105,8 @@ jobs:
         
     - name: Run Java tests
       run: |
-        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "customer_feedback" ]; then
-          cd tests/customer_feedback/java
+        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "spam_detector" ]; then
+          cd tests/spam_detector/java
           mvn test
         fi
         if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "news_classifier" ]; then
@@ -128,8 +128,8 @@ jobs:
         
     - name: Build and test C++
       run: |
-        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "customer_feedback" ]; then
-          cd tests/customer_feedback/cpp
+        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "spam_detector" ]; then
+          cd tests/spam_detector/cpp
           mkdir build && cd build
           cmake ..
           make
@@ -156,8 +156,8 @@ jobs:
         
     - name: Install dependencies
       run: |
-        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "customer_feedback" ]; then
-          cd tests/customer_feedback/nodejs
+        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "spam_detector" ]; then
+          cd tests/spam_detector/nodejs
           npm install
         fi
         if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "news_classifier" ]; then
@@ -167,8 +167,8 @@ jobs:
         
     - name: Run Node.js tests
       run: |
-        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "customer_feedback" ]; then
-          cd tests/customer_feedback/nodejs
+        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "spam_detector" ]; then
+          cd tests/spam_detector/nodejs
           npm test
         fi
         if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "news_classifier" ]; then
@@ -195,8 +195,8 @@ jobs:
         
     - name: Run Rust tests
       run: |
-        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "customer_feedback" ]; then
-          cd tests/customer_feedback/rust
+        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "spam_detector" ]; then
+          cd tests/spam_detector/rust
           cargo test
         fi
         if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "news_classifier" ]; then
