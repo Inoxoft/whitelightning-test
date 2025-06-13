@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       model_type:
-        description: 'Model type to test'
+        description: 'Model type to test (includes customer feedback classifier)'
         required: true
         default: 'binary_classifier'
         type: choice
