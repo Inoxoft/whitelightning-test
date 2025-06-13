@@ -136,8 +136,11 @@ class ONNXModelTester:
 
 def test_binary_classifier():
     """Main test function for binary classifier"""
-    # Get the model path from the local directory
-    model_path = Path(__file__).parent / "model.onnx"
+    # Check for custom model files first, then fall back to default
+    custom_model_path = Path(__file__).parent / "model_files" / "model.onnx"
+    default_model_path = Path(__file__).parent / "model.onnx"
+    
+    model_path = custom_model_path if custom_model_path.exists() else default_model_path
     assert model_path.exists(), f"Model not found at {model_path}"
     
     # Initialize the tester
@@ -158,7 +161,11 @@ def test_binary_classifier():
 
 def test_custom_text(text):
     """Test model with custom text input"""
-    model_path = Path(__file__).parent / "model.onnx"
+    # Check for custom model files first, then fall back to default
+    custom_model_path = Path(__file__).parent / "model_files" / "model.onnx"
+    default_model_path = Path(__file__).parent / "model.onnx"
+    
+    model_path = custom_model_path if custom_model_path.exists() else default_model_path
     assert model_path.exists(), f"Model not found at {model_path}"
     
     tester = ONNXModelTester(model_path)
