@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'python' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -61,7 +61,7 @@ jobs:
         
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: python-test-results
         path: |
@@ -95,10 +95,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'java' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up JDK
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'cpp' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -158,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'nodejs' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -191,7 +191,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'rust' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -219,7 +219,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'dart' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install Dart
       uses: dart-lang/setup-dart@v1
@@ -252,7 +252,7 @@ jobs:
     runs-on: macos-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'swift' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install ONNX Runtime
       run: |
@@ -275,7 +275,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'c' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -303,7 +303,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'go' }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Go
       uses: actions/setup-go@v4
