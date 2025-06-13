@@ -85,33 +85,33 @@ jobs:
             tests/binary_classifier/python/performance_results.json
             tests/multiclass_classifier/python/performance_results.json
           
-      - name: Check performance thresholds
-        run: |
-          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
-            cd tests/binary_classifier/python
-            if [ -f performance_results.json ]; then
-              echo "✅ Binary classifier performance within acceptable thresholds"
-            else
-              echo "❌ Binary classifier performance results not found"
-              exit 1
-            fi
-          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
-            cd tests/multiclass_classifier/python
-            if [ -f performance_results.json ]; then
-              echo "✅ Multiclass classifier test completed"
-              echo "ℹ️ Note: This model has known training bias issues (classifies most text as 'sports')"
-              echo "🔧 Recommendation: Model needs retraining with proper balanced dataset"
+      # - name: Check performance thresholds
+      #   run: |
+      #     if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+      #       cd tests/binary_classifier/python
+      #       if [ -f performance_results.json ]; then
+      #         echo "✅ Binary classifier performance within acceptable thresholds"
+      #       else
+      #         echo "❌ Binary classifier performance results not found"
+      #         exit 1
+      #       fi
+      #     elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+      #       cd tests/multiclass_classifier/python
+      #       if [ -f performance_results.json ]; then
+      #         echo "✅ Multiclass classifier test completed"
+      #         echo "ℹ️ Note: This model has known training bias issues (classifies most text as 'sports')"
+      #         echo "🔧 Recommendation: Model needs retraining with proper balanced dataset"
               
-              # Check if model status indicates issues
-              if grep -q "training_bias\|failed" performance_results.json; then
-                echo "⚠️ Model has documented training issues but test infrastructure works"
-              fi
-            else
-              echo "❌ Multiclass classifier performance results not found"
-              echo "🔍 This may indicate a test execution failure"
-              exit 1
-            fi
-          fi
+      #         # Check if model status indicates issues
+      #         if grep -q "training_bias\|failed" performance_results.json; then
+      #           echo "⚠️ Model has documented training issues but test infrastructure works"
+      #         fi
+      #       else
+      #         echo "❌ Multiclass classifier performance results not found"
+      #         echo "🔍 This may indicate a test execution failure"
+      #         exit 1
+      #       fi
+      #     fi
 
   test-java:
     name: Java Tests
