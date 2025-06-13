@@ -2,6 +2,10 @@
 
 A comprehensive testing framework for ONNX models (binary and multiclass classification) before production deployment. This tool validates model performance, robustness, and deployment readiness through extensive automated testing.
 
+## 🆕 Multiclass Classification Testing
+
+This repository includes dedicated testing infrastructure for multiclass ONNX models with advanced debugging and validation capabilities. See the [Multiclass Testing](#multiclass-classifier-testing) section for detailed information.
+
 ## Features
 
 ### Core Testing Capabilities
@@ -280,9 +284,237 @@ MIT License - Feel free to use and modify for your projects.
 4. Add tests if needed
 5. Submit a pull request
 
+## Multiclass Classifier Testing
+
+### Overview
+
+The repository includes specialized testing infrastructure for multiclass ONNX models located in `tests/multiclass_classifier/python/`. This testing framework provides comprehensive validation, debugging, and performance analysis for multiclass classification models.
+
+### Directory Structure
+
+```
+tests/multiclass_classifier/python/
+├── test_onnx_model.py          # Main test suite with debugging features
+├── requirements.txt            # Python dependencies
+├── model.onnx                  # Your multiclass ONNX model
+├── vocab.json                  # Vocabulary/tokenization mapping
+├── scaler.json                 # Label mapping (class names)
+└── performance_results.json    # Generated performance metrics
+```
+
+### Features
+
+#### 🔍 Advanced Debugging
+- **Step-by-step preprocessing analysis** - Shows tokenization, padding, and vocabulary coverage
+- **Model architecture inspection** - Validates input/output shapes and types
+- **Comprehensive label mapping diagnosis** - Tests all categories systematically
+- **Performance profiling** - Measures inference time and memory usage
+
+#### 🧪 Systematic Testing
+- **Multi-category validation** - Tests with examples from each class
+- **Confusion matrix generation** - Identifies classification patterns and biases
+- **Real-world text examples** - Uses actual text samples for validation
+- **Edge case detection** - Identifies model limitations and training issues
+
+#### 📊 Performance Monitoring
+- **Automated benchmarking** - Measures speed and resource usage
+- **Results persistence** - Saves metrics to JSON for CI/CD integration
+- **Threshold validation** - Ensures performance meets requirements
+
+### Quick Start
+
+#### Local Testing
+
+```bash
+# Navigate to the multiclass classifier test directory
+cd tests/multiclass_classifier/python
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run comprehensive tests
+python -m pytest test_onnx_model.py -v -s
+
+# Test with custom text
+python -c "from test_onnx_model import test_custom_text; test_custom_text('Your custom text here')"
+```
+
+#### GitHub Actions Integration
+
+The repository includes automated testing via GitHub Actions:
+
+1. **Manual Trigger**: Go to Actions → "ONNX Model Tests" → "Run workflow"
+2. **Select Model Type**: Choose "multiclass_classifier" 
+3. **Choose Language**: Select "python"
+4. **Optional Custom Text**: Add specific text to test
+
+The workflow automatically:
+- Sets up the Python environment
+- Installs dependencies
+- Runs comprehensive tests
+- Generates performance reports
+- Provides debugging output
+
+### Model Requirements
+
+Your multiclass model should follow this structure:
+
+#### Input Format
+- **Sequence tokenization**: Text → token IDs → padded arrays
+- **Fixed length**: 30 tokens (configurable)
+- **Data type**: `int32`
+- **Shape**: `[batch_size, sequence_length]` = `[1, 30]`
+
+#### Output Format
+- **Probabilities**: One probability per class
+- **Data type**: `float32`
+- **Shape**: `[batch_size, num_classes]`
+
+#### Required Files
+- **`vocab.json`**: Word-to-token mapping `{"word": token_id, ...}`
+- **`scaler.json`**: Class index to label mapping `{"0": "health", "1": "politics", ...}`
+
+### Example Usage
+
+#### Basic Classification Test
+
+```python
+from test_onnx_model import ONNXMulticlassModelTester
+from pathlib import Path
+
+# Initialize tester
+tester = ONNXMulticlassModelTester(Path("model.onnx"))
+
+# Load model
+assert tester.test_model_loading()
+
+# Test inference
+results = tester.test_inference([
+    "The government announced new policies",
+    "Doctor recommends surgery for patient", 
+    "Team wins championship game",
+    "Earthquake strikes coastal region"
+])
+
+# Print results
+for result in results:
+    print(f"Text: {result['text']}")
+    print(f"Prediction: {result['predicted_label']}")
+    print(f"Confidence: {result['confidence_score']:.4f}")
+```
+
+#### Advanced Debugging
+
+```python
+# Run comprehensive diagnosis
+tester.diagnose_label_mapping()
+
+# Analyze model architecture
+tester.analyze_model_architecture()
+
+# Test multiple political texts
+tester.test_multiple_political_texts()
+```
+
+### Known Issues & Solutions
+
+#### 🚨 Training Bias Detection
+
+The testing framework can detect systematic training issues:
+
+**Issue**: Model classifies all text as one category (e.g., "sports")
+```
+⚠️ WARNING: Model has training bias issues
+🔧 RECOMMENDATION: Model needs retraining with proper balanced dataset
+```
+
+**Diagnosis**: The framework provides detailed analysis:
+- Confusion matrix showing misclassification patterns
+- Accuracy breakdown by category
+- Vocabulary and tokenization validation
+
+**Solutions**:
+1. **Retrain the model** with balanced, properly labeled data
+2. **Verify training data** quality and label accuracy
+3. **Check tokenization** consistency between training and inference
+
+#### 🔧 Common Problems
+
+| Problem | Symptom | Solution |
+|---------|---------|----------|
+| **Vocabulary Mismatch** | Unknown words → poor accuracy | Ensure vocab.json matches training |
+| **Label Mapping Error** | Wrong categories predicted | Verify scaler.json class mappings |
+| **Training Data Bias** | Always predicts same class | Retrain with balanced dataset |
+| **Architecture Mismatch** | Shape errors | Check input/output dimensions |
+
+### Performance Expectations
+
+#### Acceptable Metrics
+- **Inference Time**: < 100ms per text
+- **Memory Usage**: < 500MB
+- **Accuracy**: > 70% on test data
+- **Category Balance**: Each class should be predictable
+
+#### Warning Signs
+- 🚨 **All predictions same class**: Training bias
+- 🚨 **100% confidence always**: Model overconfident
+- 🚨 **High inference time**: Model too complex
+- 🚨 **Memory leaks**: Resource management issues
+
+### Workflow Configuration
+
+The GitHub Actions workflow supports multiclass testing:
+
+```yaml
+# .github/workflows/onnx-model-tests.yml
+inputs:
+  model_type:
+    description: 'Model type to test (includes customer feedback classifier)'
+    options:
+      - binary_classifier
+      - multiclass_classifier  # ← Your option
+  language:
+    description: 'Programming language to test'
+    options:
+      - python
+  custom_text:
+    description: 'Custom text to test (optional)'
+```
+
+### Advanced Features
+
+#### Custom Text Analysis
+Provides detailed breakdown of model behavior:
+- **Preprocessing steps**: Shows tokenization process
+- **Model outputs**: Raw probabilities and predictions  
+- **Performance metrics**: Timing and memory usage
+- **Vocabulary analysis**: Coverage and unknown words
+
+#### Systematic Category Testing
+Tests examples from each category:
+- **Health**: Medical terms and scenarios
+- **Politics**: Government and policy texts
+- **Sports**: Athletic events and competitions
+- **World**: International news and events
+
+#### Diagnostic Tools
+- **Token pattern analysis**: Tests artificial inputs
+- **Confusion matrix generation**: Visual classification patterns
+- **Performance profiling**: Detailed timing breakdown
+- **Error detection**: Identifies training issues
+
+### Next Steps
+
+1. **Test your model** using the provided framework
+2. **Analyze the results** and identify any issues
+3. **Fix training problems** if systematic bias detected
+4. **Integrate into CI/CD** using GitHub Actions
+5. **Monitor performance** in production
+
 ## Support
 
 For issues and questions:
 - Create an issue in the repository
 - Check existing documentation
-- Review troubleshooting section 
+- Review troubleshooting section
+- For multiclass classifier issues, include performance_results.json 
