@@ -14,8 +14,8 @@ on:
         default: 'binary_classifier'
         type: choice
         options:
-          - binary_classifier
-          - news_classifier
+          - binary_classifier(Customer feedback classifier)
+          - multiclass_classifier(News classifier)
       language:
         description: 'Programming language to test'
         required: true
@@ -27,9 +27,9 @@ on:
           - cpp
           - nodejs
       custom_text:
-        description: 'Customer feedback classifier'
+        description: 'Input your text'
         required: false
-        type: string
+        type: stringf
         default: ''
 
 jobs:
