@@ -156,5 +156,31 @@ def test_binary_classifier():
     # Save performance results
     tester.save_performance_results()
 
+def test_custom_text(text):
+    """Test model with custom text input"""
+    model_path = Path(__file__).parent / "model.onnx"
+    assert model_path.exists(), f"Model not found at {model_path}"
+    
+    tester = ONNXModelTester(model_path)
+    tester.test_model_loading()
+    
+    # Preprocess and run inference
+    input_vector = tester.preprocess_text(text)
+    input_data = {tester.session.get_inputs()[0].name: input_vector.reshape(1, -1)}
+    outputs = tester.session.run(None, input_data)
+    prediction = float(outputs[0][0][0])
+    
+    print(f"\nCustom Text Analysis:")
+    print(f"Input: {text}")
+    print(f"Prediction: {prediction}")
+    print(f"Sentiment: {'Positive' if prediction > 0.5 else 'Negative'} (confidence: {prediction:.2%})")
+
 if __name__ == "__main__":
-    pytest.main([__file__, "-v"]) 
+    import sys
+    if len(sys.argv) > 1:
+        # If text is provided as argument, test custom text
+        custom_text = " ".join(sys.argv[1:])
+        test_custom_text(custom_text)
+    else:
+        # Otherwise run the standard test suite
+        pytest.main([__file__, "-v", "-s"]) 
