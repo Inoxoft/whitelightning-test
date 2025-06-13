@@ -31,18 +31,6 @@ on:
         required: false
         type: string
         default: ''
-      custom_model:
-        description: 'Custom ONNX model file (base64 encoded)'
-        required: false
-        type: string
-      custom_vocab:
-        description: 'Custom vocabulary file (base64 encoded JSON)'
-        required: false
-        type: string
-      custom_scaler:
-        description: 'Custom scaler file (base64 encoded JSON)'
-        required: false
-        type: string
 
 jobs:
   python-tests:
@@ -64,24 +52,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r tests/binary_classifier/python/requirements.txt
           
-      - name: Create model directory
-        run: |
-          mkdir -p tests/binary_classifier/python/model_files
-          
-      - name: Save custom model files
-        if: ${{ inputs.custom_model != '' || inputs.custom_vocab != '' || inputs.custom_scaler != '' }}
-        run: |
-          cd tests/binary_classifier/python/model_files
-          if [ -n "${{ inputs.custom_model }}" ]; then
-            echo "${{ inputs.custom_model }}" | base64 -d > model.onnx
-          fi
-          if [ -n "${{ inputs.custom_vocab }}" ]; then
-            echo "${{ inputs.custom_vocab }}" | base64 -d > vocab.json
-          fi
-          if [ -n "${{ inputs.custom_scaler }}" ]; then
-            echo "${{ inputs.custom_scaler }}" | base64 -d > scaler.json
-          fi
-          
       - name: Run Python Tests
         if: ${{ inputs.language == 'python' }}
         run: |
@@ -97,9 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-test-results
-          path: |
-            tests/binary_classifier/python/performance_results.json
-            tests/binary_classifier/python/model_files/
+          path: tests/binary_classifier/python/performance_results.json
           
       - name: Check performance thresholds
         run: |
