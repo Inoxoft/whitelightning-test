@@ -29,7 +29,7 @@ on:
       custom_text:
         description: 'Input your text'
         required: false
-        type: stringf
+        type: string
         default: ''
 
 jobs:
@@ -50,33 +50,59 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r tests/binary_classifier/python/requirements.txt
+          if [ "${{ inputs.model_type }}" = "binary_classifier" ]; then
+            pip install -r tests/binary_classifier/python/requirements.txt
+          elif [ "${{ inputs.model_type }}" = "multiclass_classifier" ]; then
+            pip install -r tests/multiclass_classifier/python/requirements.txt
+          fi
           
       - name: Run Python Tests
         if: ${{ inputs.language == 'python' }}
         run: |
-          cd tests/binary_classifier/python
-          if [ -n "${{ inputs.custom_text }}" ]; then
-            echo "Testing custom text: ${{ inputs.custom_text }}"
-            python -c "from test_onnx_model import test_custom_text; test_custom_text('${{ inputs.custom_text }}')"
-          else
-            python -m pytest test_onnx_model.py -v -s
+          if [ "${{ inputs.model_type }}" = "binary_classifier" ]; then
+            cd tests/binary_classifier/python
+            if [ -n "${{ inputs.custom_text }}" ]; then
+              echo "Testing custom text: ${{ inputs.custom_text }}"
+              python -c "from test_onnx_model import test_custom_text; test_custom_text('${{ inputs.custom_text }}')"
+            else
+              python -m pytest test_onnx_model.py -v -s
+            fi
+          elif [ "${{ inputs.model_type }}" = "multiclass_classifier" ]; then
+            cd tests/multiclass_classifier/python
+            if [ -n "${{ inputs.custom_text }}" ]; then
+              echo "Testing custom text: ${{ inputs.custom_text }}"
+              python -c "from test_onnx_model import test_custom_text; test_custom_text('${{ inputs.custom_text }}')"
+            else
+              python -m pytest test_onnx_model.py -v -s
+            fi
           fi
           
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: python-test-results
-          path: tests/binary_classifier/python/performance_results.json
+          path: |
+            tests/binary_classifier/python/performance_results.json
+            tests/multiclass_classifier/python/performance_results.json
           
       - name: Check performance thresholds
         run: |
-          cd tests/binary_classifier/python
-          if [ -f performance_results.json ]; then
-            echo "✅ Performance within acceptable thresholds"
-          else
-            echo "❌ Performance results not found"
-            exit 1
+          if [ "${{ inputs.model_type }}" = "binary_classifier" ]; then
+            cd tests/binary_classifier/python
+            if [ -f performance_results.json ]; then
+              echo "✅ Binary classifier performance within acceptable thresholds"
+            else
+              echo "❌ Binary classifier performance results not found"
+              exit 1
+            fi
+          elif [ "${{ inputs.model_type }}" = "multiclass_classifier" ]; then
+            cd tests/multiclass_classifier/python
+            if [ -f performance_results.json ]; then
+              echo "✅ Multiclass classifier performance within acceptable thresholds"
+            else
+              echo "❌ Multiclass classifier performance results not found"
+              exit 1
+            fi
           fi
 
   test-java:
