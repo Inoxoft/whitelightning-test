@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       model_type:
-        description: 'Model type to test (includes customer feedback classifier)'
+        description: 'Model type to test '
         required: true
         default: 'binary_classifier'
         type: choice
@@ -27,7 +27,7 @@ on:
           - cpp
           - nodejs
       custom_text:
-        description: 'Custom text to test (optional)'
+        description: 'Customer feedback classifier'
         required: false
         type: string
         default: ''
