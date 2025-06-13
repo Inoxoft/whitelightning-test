@@ -80,6 +80,8 @@ class ONNXModelTester:
             outputs = self.session.run(None, input_data)
             prediction = float(outputs[0][0][0])  # Probability of positive class
             
+            print(f"Input: {text}\nPrediction: {prediction}\n")
+            
             end_time = time.time()
             end_memory = self._get_memory_usage()
             
@@ -143,8 +145,13 @@ def test_binary_classifier():
     
     # Run all tests
     tester.test_model_loading()
-    tester.test_inference()
+    inference_results = tester.test_inference()
     tester.test_performance()
+    
+    # Print all inference results
+    print("\nAll inference results:")
+    for result in inference_results:
+        print(f"Input: {result['text']} | Prediction: {result['prediction']}")
     
     # Save performance results
     tester.save_performance_results()
