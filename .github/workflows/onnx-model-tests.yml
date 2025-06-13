@@ -50,16 +50,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ "${{ inputs.model_type }}" = "binary_classifier" ]; then
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             pip install -r tests/binary_classifier/python/requirements.txt
-          elif [ "${{ inputs.model_type }}" = "multiclass_classifier" ]; then
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             pip install -r tests/multiclass_classifier/python/requirements.txt
           fi
           
       - name: Run Python Tests
         if: ${{ inputs.language == 'python' }}
         run: |
-          if [ "${{ inputs.model_type }}" = "binary_classifier" ]; then
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             cd tests/binary_classifier/python
             if [ -n "${{ inputs.custom_text }}" ]; then
               echo "Testing custom text: ${{ inputs.custom_text }}"
@@ -67,7 +67,7 @@ jobs:
             else
               python -m pytest test_onnx_model.py -v -s
             fi
-          elif [ "${{ inputs.model_type }}" = "multiclass_classifier" ]; then
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             cd tests/multiclass_classifier/python
             if [ -n "${{ inputs.custom_text }}" ]; then
               echo "Testing custom text: ${{ inputs.custom_text }}"
@@ -87,7 +87,7 @@ jobs:
           
       - name: Check performance thresholds
         run: |
-          if [ "${{ inputs.model_type }}" = "binary_classifier" ]; then
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             cd tests/binary_classifier/python
             if [ -f performance_results.json ]; then
               echo "✅ Binary classifier performance within acceptable thresholds"
@@ -95,7 +95,7 @@ jobs:
               echo "❌ Binary classifier performance results not found"
               exit 1
             fi
-          elif [ "${{ inputs.model_type }}" = "multiclass_classifier" ]; then
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             cd tests/multiclass_classifier/python
             if [ -f performance_results.json ]; then
               echo "✅ Multiclass classifier performance within acceptable thresholds"
