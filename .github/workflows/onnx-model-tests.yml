@@ -57,7 +57,7 @@ jobs:
     - name: Run Python tests
       run: |
         cd tests/binary_classifier/python
-        pytest test_onnx_model.py -v
+        python -m pytest test_onnx_model.py -v -s
         
     - name: Upload test results
       if: always()
