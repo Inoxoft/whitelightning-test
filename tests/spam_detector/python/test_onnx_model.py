@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import numpy as np
 import onnxruntime as ort
 import psutil
@@ -77,7 +78,7 @@ class ONNXModelTester:
             
             result = {
                 'text': text,
-                'prediction': output[0][0],
+                'prediction': float(output[0][0]),  # Convert numpy float to Python float
                 'inference_time_ms': inference_time,
                 'memory_used_mb': memory_used
             }
@@ -118,16 +119,23 @@ class ONNXModelTester:
         
         avg_time = total_time / num_iterations
         
+        results = {
+            'avg_inference_time_ms': avg_time,
+            'max_memory_mb': max_memory,
+            'min_memory_mb': min_memory,
+            'num_iterations': num_iterations
+        }
+        
+        # Save results to file
+        with open('performance_results.json', 'w') as f:
+            json.dump(results, f, indent=2)
+        
         print("\nPerformance Test Results:")
         print(f"Average inference time: {avg_time:.2f} ms")
         print(f"Maximum memory usage: {max_memory:.2f} MB")
         print(f"Minimum memory usage: {min_memory:.2f} MB")
         
-        return {
-            'avg_inference_time_ms': avg_time,
-            'max_memory_mb': max_memory,
-            'min_memory_mb': min_memory
-        }
+        return results
 
     def _preprocess_text(self, text):
         """Preprocess text for model input"""
@@ -155,6 +163,10 @@ def test_spam_detector():
         "Meeting at 2 PM in the conference room"
     ]
     inference_results = tester.test_inference(test_texts)
+    
+    # Save inference results
+    with open('inference_results.json', 'w') as f:
+        json.dump(inference_results, f, indent=2)
     
     # Verify inference results
     for result in inference_results:
