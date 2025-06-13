@@ -1,0 +1,7 @@
+{
+  "avg_inference_time_ms": 0.23867130279541016,
+  "max_inference_time_ms": 1.2187957763671875,
+  "min_inference_time_ms": 0.12111663818359375,
+  "avg_memory_mb": 3.90625e-05,
+  "max_memory_mb": 0.00390625
+}
