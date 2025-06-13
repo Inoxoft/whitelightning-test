@@ -103,7 +103,7 @@ class ONNXModelTester:
 def test_spam_detector():
     """Main test function for spam detector"""
     # Get the model path from the local directory
-    model_path = Path(__file__).parent / "Customer feedback(B(P,N))"
+    model_path = Path(__file__).parent / "Customer feedback(B(P,N))" / "model.onnx"
     assert model_path.exists(), f"Model not found at {model_path}"
     
     # Initialize the tester
