@@ -98,9 +98,17 @@ jobs:
           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             cd tests/multiclass_classifier/python
             if [ -f performance_results.json ]; then
-              echo "✅ Multiclass classifier performance within acceptable thresholds"
+              echo "✅ Multiclass classifier test completed"
+              echo "ℹ️ Note: This model has known training bias issues (classifies most text as 'sports')"
+              echo "🔧 Recommendation: Model needs retraining with proper balanced dataset"
+              
+              # Check if model status indicates issues
+              if grep -q "training_bias\|failed" performance_results.json; then
+                echo "⚠️ Model has documented training issues but test infrastructure works"
+              fi
             else
               echo "❌ Multiclass classifier performance results not found"
+              echo "🔍 This may indicate a test execution failure"
               exit 1
             fi
           fi
