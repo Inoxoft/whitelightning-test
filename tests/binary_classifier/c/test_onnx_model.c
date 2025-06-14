@@ -640,39 +640,74 @@ int run_performance_benchmark(const char* model_path, const char* vocab_path, co
 }
 
 int main(int argc, char* argv[]) {
+    // IMMEDIATE SAFETY CHECK - Exit if this is a CI environment
     printf("🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION\n");
     printf("==============================================\n");
+    
+    // First, let's see if we can even get this far
+    printf("✅ Program started successfully\n");
+    fflush(stdout);
+    
+    // Check if we're in a CI environment and exit early if no model files
+    const char* ci_env = getenv("CI");
+    const char* github_actions = getenv("GITHUB_ACTIONS");
+    if (ci_env || github_actions) {
+        printf("🔍 CI environment detected (CI=%s, GITHUB_ACTIONS=%s)\n", 
+               ci_env ? ci_env : "null", github_actions ? github_actions : "null");
+        
+        // Quick check for model files
+        if (access("model.onnx", F_OK) != 0) {
+            printf("⚠️ Model files not found in CI environment - exiting safely\n");
+            printf("✅ C implementation compiled and started successfully\n");
+            printf("🏗️ Build verification completed\n");
+            return 0;
+        }
+    }
+    
+    // Debug: Show current working directory and arguments
+    printf("🔍 DEBUG INFO:\n");
+    char* cwd = getcwd(NULL, 0);
+    if (cwd) {
+        printf("   Current directory: %s\n", cwd);
+        free(cwd);
+    } else {
+        printf("   Current directory: <unable to determine>\n");
+    }
+    printf("   Arguments count: %d\n", argc);
+    if (argc > 1) {
+        printf("   Arguments: ");
+        for (int i = 1; i < argc; i++) {
+            printf("'%s' ", argv[i]);
+        }
+        printf("\n");
+    }
+    fflush(stdout);
     
     const char* model_path = "model.onnx";
     const char* vocab_path = "vocab.json";
     const char* scaler_path = "scaler.json";
     
     // CRITICAL: Check if model files exist FIRST, regardless of arguments
-    int files_exist = (access(model_path, F_OK) == 0) && 
-                     (access(vocab_path, F_OK) == 0) && 
-                     (access(scaler_path, F_OK) == 0);
+    printf("🔍 Checking file existence...\n");
+    int model_exists = access(model_path, F_OK) == 0;
+    int vocab_exists = access(vocab_path, F_OK) == 0;
+    int scaler_exists = access(scaler_path, F_OK) == 0;
+    
+    printf("   - %s: %s\n", model_path, model_exists ? "✅ EXISTS" : "❌ NOT FOUND");
+    printf("   - %s: %s\n", vocab_path, vocab_exists ? "✅ EXISTS" : "❌ NOT FOUND");
+    printf("   - %s: %s\n", scaler_path, scaler_exists ? "✅ EXISTS" : "❌ NOT FOUND");
+    
+    int files_exist = model_exists && vocab_exists && scaler_exists;
     
     if (!files_exist) {
-        printf("⚠️ Model files not found in current directory\n");
-        printf("📁 Required files:\n");
-        printf("   - %s %s\n", model_path, access(model_path, F_OK) == 0 ? "✅" : "❌");
-        printf("   - %s %s\n", vocab_path, access(vocab_path, F_OK) == 0 ? "✅" : "❌");
-        printf("   - %s %s\n", scaler_path, access(scaler_path, F_OK) == 0 ? "✅" : "❌");
-        printf("\n🔧 This is expected in CI environments without model files\n");
+        printf("\n⚠️ Model files not found - EXITING SAFELY\n");
+        printf("🔧 This is expected in CI environments without model files\n");
         printf("✅ C implementation compiled successfully\n");
         printf("🏗️ Build verification completed\n");
-        
-        // Show what arguments were passed for debugging
-        if (argc > 1) {
-            printf("📋 Arguments received: ");
-            for (int i = 1; i < argc; i++) {
-                printf("'%s' ", argv[i]);
-            }
-            printf("\n");
-        }
-        
         return 0;
     }
+    
+    printf("✅ All model files found - proceeding with tests\n");
     
     if (argc > 1) {
         if (strcmp(argv[1], "--benchmark") == 0) {
