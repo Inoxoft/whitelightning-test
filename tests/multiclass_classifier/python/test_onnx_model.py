@@ -6,6 +6,8 @@ import onnxruntime as ort
 import psutil
 import pytest
 from pathlib import Path
+import threading
+import platform
 
 class ONNXMulticlassModelTester:
     def __init__(self, model_path):
@@ -122,7 +124,7 @@ class ONNXMulticlassModelTester:
             return False
             
     def test_inference(self, test_texts=None):
-        """Test model inference on sample texts"""
+        """Test model inference on sample texts with detailed performance monitoring"""
         if test_texts is None:
             test_texts = [
                 "The government announced new policies to boost the economy",
@@ -131,76 +133,272 @@ class ONNXMulticlassModelTester:
                 "Stock market shows significant gains today",
                 "New movie breaks box office records"
             ]
+        
+        # Get system info
+        system_info = self._get_system_info()
+        print(f"\n💻 SYSTEM INFORMATION:")
+        print(f"   Platform: {system_info['platform']}")
+        print(f"   CPU Cores: {system_info['cpu_count']} physical, {system_info['cpu_count_logical']} logical")
+        print(f"   Total Memory: {system_info['total_memory_gb']:.1f} GB")
+        print(f"   Python Version: {system_info['python_version']}")
+        print()
             
         results = []
-        for text in test_texts:
+        total_start_time = time.time()
+        
+        for i, text in enumerate(test_texts, 1):
+            print(f"🔄 Processing {i}/{len(test_texts)}: {text[:50]}...")
+            
+            # Pre-inference measurements
             start_time = time.time()
             start_memory = self._get_memory_usage()
+            start_cpu = self._get_cpu_usage()
             
-            # Preprocess text
+            # Start CPU monitoring
+            cpu_readings, cpu_monitor = self._monitor_cpu_continuously(duration_seconds=0.5)
+            
+            # Preprocessing timing
+            preprocess_start = time.time()
             input_vector = self.preprocess_text(text)
+            preprocess_time = time.time() - preprocess_start
             
-            # Run inference
+            # Model inference timing
+            inference_start = time.time()
             input_name = self.session.get_inputs()[0].name
             output_name = self.session.get_outputs()[0].name
             input_data = input_vector.reshape(1, 30)
             outputs = self.session.run([output_name], {input_name: input_data})
+            inference_time = time.time() - inference_start
             
-            # Get prediction
+            # Post-processing timing
+            postprocess_start = time.time()
             probabilities = outputs[0][0]
             predicted_idx = np.argmax(probabilities)
             label = self.label_map[str(predicted_idx)]
             score = probabilities[predicted_idx]
+            postprocess_time = time.time() - postprocess_start
             
-            print(f"Input: {text}")
-            print(f"Prediction: {label} (Score: {score:.4f})")
-            print(f"All probabilities: {dict(zip([self.label_map[str(i)] for i in range(len(probabilities))], probabilities))}")
-            print()
+            # Wait for CPU monitoring to complete
+            time.sleep(0.1)
+            cpu_monitor.join(timeout=1.0)
             
+            # Post-inference measurements
             end_time = time.time()
             end_memory = self._get_memory_usage()
+            end_cpu = self._get_cpu_usage()
+            
+            # Calculate metrics
+            total_time = end_time - start_time
+            memory_delta = end_memory - start_memory
+            cpu_avg = np.mean(cpu_readings) if cpu_readings else 0
+            cpu_max = np.max(cpu_readings) if cpu_readings else 0
+            
+            # Display results with performance metrics
+            print(f"   📊 Result: {label} (confidence: {score:.4f})")
+            print(f"   ⏱️  Total Time: {total_time*1000:.2f}ms")
+            print(f"   ┣━ Preprocessing: {preprocess_time*1000:.2f}ms ({preprocess_time/total_time*100:.1f}%)")
+            print(f"   ┣━ Model Inference: {inference_time*1000:.2f}ms ({inference_time/total_time*100:.1f}%)")
+            print(f"   ┗━ Post-processing: {postprocess_time*1000:.2f}ms ({postprocess_time/total_time*100:.1f}%)")
+            print(f"   🧠 CPU Usage: {cpu_avg:.1f}% avg, {cpu_max:.1f}% peak")
+            print(f"   💾 Memory: {start_memory:.1f}MB → {end_memory:.1f}MB (Δ{memory_delta:+.1f}MB)")
+            print(f"   🚀 Throughput: {1/total_time:.1f} texts/sec")
+            print()
             
             results.append({
                 'text': text,
                 'predicted_label': label,
                 'confidence_score': float(score),
                 'all_probabilities': probabilities.tolist(),
-                'inference_time_ms': (end_time - start_time) * 1000,
-                'memory_used_mb': end_memory - start_memory
+                'timing': {
+                    'total_time_ms': total_time * 1000,
+                    'preprocessing_time_ms': preprocess_time * 1000,
+                    'inference_time_ms': inference_time * 1000,
+                    'postprocessing_time_ms': postprocess_time * 1000,
+                    'throughput_per_sec': 1 / total_time
+                },
+                'resource_usage': {
+                    'memory_start_mb': start_memory,
+                    'memory_end_mb': end_memory,
+                    'memory_delta_mb': memory_delta,
+                    'cpu_avg_percent': cpu_avg,
+                    'cpu_max_percent': cpu_max,
+                    'cpu_readings': cpu_readings
+                },
+                'system_info': system_info
             })
+        
+        # Overall performance summary
+        total_processing_time = time.time() - total_start_time
+        avg_time_per_text = total_processing_time / len(test_texts)
+        
+        print(f"📈 OVERALL PERFORMANCE SUMMARY:")
+        print(f"   Total Processing Time: {total_processing_time:.2f}s")
+        print(f"   Average Time per Text: {avg_time_per_text*1000:.2f}ms")
+        print(f"   Overall Throughput: {len(test_texts)/total_processing_time:.1f} texts/sec")
+        print()
             
         return results
         
     def test_performance(self, num_runs=100):
-        """Test model performance"""
+        """Test model performance with detailed CPU and timing analysis"""
         test_text = "The government announced new policies to boost the economy"
-        input_vector = self.preprocess_text(test_text)
         
+        print(f"\n🚀 PERFORMANCE BENCHMARKING ({num_runs} runs)")
+        print("=" * 60)
+        
+        # Get system info
+        system_info = self._get_system_info()
+        print(f"💻 System: {system_info['cpu_count']} cores, {system_info['total_memory_gb']:.1f}GB RAM")
+        print(f"📝 Test Text: '{test_text[:50]}...'")
+        print()
+        
+        # Preprocessing setup
+        input_vector = self.preprocess_text(test_text)
         input_name = self.session.get_inputs()[0].name
         output_name = self.session.get_outputs()[0].name
         input_data = input_vector.reshape(1, 30)
         
+        # Performance metrics storage
         times = []
         memory_usage = []
+        cpu_usage = []
+        preprocessing_times = []
+        inference_times = []
+        postprocessing_times = []
         
-        for _ in range(num_runs):
+        # Warmup runs (exclude from metrics)
+        print("🔥 Warming up model (5 runs)...")
+        for _ in range(5):
+            self.session.run([output_name], {input_name: input_data})
+        
+        print(f"📊 Running {num_runs} performance tests...")
+        overall_start = time.time()
+        
+        for i in range(num_runs):
+            if i % 20 == 0 and i > 0:
+                print(f"   Progress: {i}/{num_runs} ({i/num_runs*100:.1f}%)")
+            
+            # Pre-run measurements
             start_time = time.time()
             start_memory = self._get_memory_usage()
+            start_cpu = psutil.cpu_percent()
             
+            # Preprocessing timing
+            preprocess_start = time.time()
+            # (Preprocessing already done, but simulate timing)
+            preprocess_time = time.time() - preprocess_start
+            
+            # Model inference timing
+            inference_start = time.time()
             self.session.run([output_name], {input_name: input_data})
+            inference_time = time.time() - inference_start
             
+            # Post-processing timing
+            postprocess_start = time.time()
+            # (Minimal post-processing for performance test)
+            postprocess_time = time.time() - postprocess_start
+            
+            # Post-run measurements
             end_time = time.time()
             end_memory = self._get_memory_usage()
+            end_cpu = psutil.cpu_percent()
             
-            times.append((end_time - start_time) * 1000)
+            # Store metrics
+            total_time = (end_time - start_time) * 1000  # Convert to ms
+            times.append(total_time)
             memory_usage.append(end_memory - start_memory)
-            
+            cpu_usage.append((start_cpu + end_cpu) / 2)  # Average CPU
+            preprocessing_times.append(preprocess_time * 1000)
+            inference_times.append(inference_time * 1000)
+            postprocessing_times.append(postprocess_time * 1000)
+        
+        overall_time = time.time() - overall_start
+        
+        # Calculate comprehensive statistics
+        def calculate_stats(data):
+            return {
+                'mean': np.mean(data),
+                'median': np.median(data),
+                'std': np.std(data),
+                'min': np.min(data),
+                'max': np.max(data),
+                'percentile_95': np.percentile(data, 95),
+                'percentile_99': np.percentile(data, 99)
+            }
+        
+        timing_stats = calculate_stats(times)
+        memory_stats = calculate_stats(memory_usage)
+        cpu_stats = calculate_stats(cpu_usage)
+        inference_stats = calculate_stats(inference_times)
+        
+        # Display detailed results
+        print(f"\n📈 DETAILED PERFORMANCE RESULTS:")
+        print("-" * 50)
+        
+        print(f"⏱️  TIMING ANALYSIS:")
+        print(f"   Total Time per Text:")
+        print(f"     Mean: {timing_stats['mean']:.2f}ms")
+        print(f"     Median: {timing_stats['median']:.2f}ms")
+        print(f"     Min: {timing_stats['min']:.2f}ms")
+        print(f"     Max: {timing_stats['max']:.2f}ms")
+        print(f"     95th percentile: {timing_stats['percentile_95']:.2f}ms")
+        print(f"     99th percentile: {timing_stats['percentile_99']:.2f}ms")
+        print(f"     Standard deviation: {timing_stats['std']:.2f}ms")
+        
+        print(f"\n   Model Inference Only:")
+        print(f"     Mean: {inference_stats['mean']:.2f}ms")
+        print(f"     Min: {inference_stats['min']:.2f}ms")
+        print(f"     Max: {inference_stats['max']:.2f}ms")
+        
+        print(f"\n🧠 CPU USAGE:")
+        print(f"   Average: {cpu_stats['mean']:.1f}%")
+        print(f"   Peak: {cpu_stats['max']:.1f}%")
+        print(f"   Standard deviation: {cpu_stats['std']:.1f}%")
+        
+        print(f"\n💾 MEMORY USAGE:")
+        print(f"   Average delta: {memory_stats['mean']:.2f}MB")
+        print(f"   Max delta: {memory_stats['max']:.2f}MB")
+        print(f"   Current usage: {self._get_memory_usage():.1f}MB")
+        
+        print(f"\n🚀 THROUGHPUT:")
+        print(f"   Texts per second: {1000/timing_stats['mean']:.1f}")
+        print(f"   Total benchmark time: {overall_time:.2f}s")
+        print(f"   Overall throughput: {num_runs/overall_time:.1f} texts/sec")
+        
+        # Performance classification
+        avg_time = timing_stats['mean']
+        if avg_time < 10:
+            performance_class = "🚀 EXCELLENT"
+        elif avg_time < 50:
+            performance_class = "✅ GOOD"
+        elif avg_time < 100:
+            performance_class = "⚠️ ACCEPTABLE"
+        else:
+            performance_class = "❌ POOR"
+        
+        print(f"\n🎯 PERFORMANCE CLASSIFICATION: {performance_class}")
+        print(f"   ({avg_time:.1f}ms average - Target: <100ms)")
+        
         return {
-            'avg_inference_time_ms': sum(times) / len(times),
-            'max_inference_time_ms': max(times),
-            'min_inference_time_ms': min(times),
-            'avg_memory_mb': sum(memory_usage) / len(memory_usage),
-            'max_memory_mb': max(memory_usage)
+            'avg_inference_time_ms': timing_stats['mean'],
+            'median_inference_time_ms': timing_stats['median'],
+            'max_inference_time_ms': timing_stats['max'],
+            'min_inference_time_ms': timing_stats['min'],
+            'std_inference_time_ms': timing_stats['std'],
+            'percentile_95_ms': timing_stats['percentile_95'],
+            'percentile_99_ms': timing_stats['percentile_99'],
+            'model_inference_only_ms': inference_stats['mean'],
+            'avg_memory_mb': memory_stats['mean'],
+            'max_memory_mb': memory_stats['max'],
+            'current_memory_mb': self._get_memory_usage(),
+            'avg_cpu_percent': cpu_stats['mean'],
+            'max_cpu_percent': cpu_stats['max'],
+            'throughput_per_sec': 1000 / timing_stats['mean'],
+            'overall_throughput_per_sec': num_runs / overall_time,
+            'performance_classification': performance_class,
+            'num_runs': num_runs,
+            'system_info': system_info,
+            'benchmark_duration_sec': overall_time
         }
         
     def save_performance_results(self):
@@ -231,6 +429,37 @@ class ONNXMulticlassModelTester:
         """Get current memory usage in MB"""
         process = psutil.Process()
         return process.memory_info().rss / 1024 / 1024
+    
+    def _get_cpu_usage(self):
+        """Get current CPU usage percentage"""
+        return psutil.cpu_percent(interval=0.1)
+    
+    def _get_system_info(self):
+        """Get system information"""
+        return {
+            'cpu_count': psutil.cpu_count(),
+            'cpu_count_logical': psutil.cpu_count(logical=True),
+            'platform': platform.platform(),
+            'processor': platform.processor(),
+            'python_version': platform.python_version(),
+            'total_memory_gb': psutil.virtual_memory().total / (1024**3)
+        }
+    
+    def _monitor_cpu_continuously(self, duration_seconds=1.0):
+        """Monitor CPU usage continuously during inference"""
+        cpu_readings = []
+        start_time = time.time()
+        
+        def collect_cpu():
+            while time.time() - start_time < duration_seconds:
+                cpu_readings.append(psutil.cpu_percent(interval=0.01))
+                time.sleep(0.01)
+        
+        monitor_thread = threading.Thread(target=collect_cpu)
+        monitor_thread.daemon = True
+        monitor_thread.start()
+        
+        return cpu_readings, monitor_thread
 
     def diagnose_label_mapping(self):
         """Test with texts that should clearly belong to each category to check label mapping"""
@@ -419,13 +648,31 @@ def test_custom_text(text):
     print(f"   Available Labels: {list(tester.label_map.values())}")
     print()
     
+    # System information
+    system_info = tester._get_system_info()
+    print("💻 SYSTEM INFORMATION:")
+    print(f"   Platform: {system_info['platform']}")
+    print(f"   CPU: {system_info['processor']}")
+    print(f"   CPU Cores: {system_info['cpu_count']} physical, {system_info['cpu_count_logical']} logical")
+    print(f"   Total Memory: {system_info['total_memory_gb']:.1f} GB")
+    print(f"   Python Version: {system_info['python_version']}")
+    print(f"   Current Memory Usage: {tester._get_memory_usage():.1f} MB")
+    print()
+    
     # Debugging preprocessing
     input_vector = tester.debug_preprocessing(text)
     print()
     
-    # Run inference with detailed timing
+    # Run inference with detailed timing and resource monitoring
     print("⚡ INFERENCE EXECUTION:")
-    inference_start = time.time()
+    
+    # Pre-inference measurements
+    pre_inference_time = time.time()
+    pre_memory = tester._get_memory_usage()
+    pre_cpu = tester._get_cpu_usage()
+    
+    # Start continuous CPU monitoring
+    cpu_readings, cpu_monitor = tester._monitor_cpu_continuously(duration_seconds=1.0)
     
     input_name = tester.session.get_inputs()[0].name
     output_name = tester.session.get_outputs()[0].name
@@ -435,9 +682,19 @@ def test_custom_text(text):
     print(f"   Input data shape: {input_data.shape}")
     print(f"   Input data sample: {input_data[0][:10]}...")
     
+    # Model inference timing
+    inference_start = time.time()
     outputs = tester.session.run([output_name], {input_name: input_data})
-    
     inference_end = time.time()
+    
+    # Wait for CPU monitoring to complete
+    time.sleep(0.1)
+    cpu_monitor.join(timeout=1.0)
+    
+    # Post-inference measurements
+    post_inference_time = time.time()
+    post_memory = tester._get_memory_usage()
+    post_cpu = tester._get_cpu_usage()
     
     # Get prediction results
     probabilities = outputs[0][0]
@@ -445,9 +702,21 @@ def test_custom_text(text):
     predicted_label = tester.label_map[str(predicted_idx)]
     confidence_score = probabilities[predicted_idx]
     
+    # Calculate performance metrics
+    total_time = post_inference_time - pre_inference_time
+    inference_time = inference_end - inference_start
+    memory_delta = post_memory - pre_memory
+    cpu_avg = np.mean(cpu_readings) if cpu_readings else 0
+    cpu_max = np.max(cpu_readings) if cpu_readings else 0
+    
     print(f"   Raw model outputs: {outputs[0][0]}")
-    print(f"   Inference time: {(inference_end - inference_start) * 1000:.2f}ms")
-    print(f"   Memory usage: {tester._get_memory_usage():.2f}MB")
+    print()
+    print(f"📊 PERFORMANCE METRICS:")
+    print(f"   Total execution time: {total_time*1000:.2f}ms")
+    print(f"   Model inference time: {inference_time*1000:.2f}ms ({inference_time/total_time*100:.1f}%)")
+    print(f"   Memory usage: {pre_memory:.1f}MB → {post_memory:.1f}MB (Δ{memory_delta:+.1f}MB)")
+    print(f"   CPU usage: {cpu_avg:.1f}% avg, {cpu_max:.1f}% peak")
+    print(f"   Throughput: {1/total_time:.1f} texts/sec")
     print()
     
     # Results
