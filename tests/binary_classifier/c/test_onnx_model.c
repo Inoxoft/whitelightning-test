@@ -648,7 +648,7 @@ int main(int argc, char* argv[]) {
     printf("✅ Program started successfully\n");
     fflush(stdout);
     
-    // Check if we're in a CI environment and exit early if no model files
+    // Check if we're in a CI environment - but only exit if model files are missing
     const char* ci_env = getenv("CI");
     const char* github_actions = getenv("GITHUB_ACTIONS");
     if (ci_env || github_actions) {
@@ -656,13 +656,25 @@ int main(int argc, char* argv[]) {
                ci_env ? ci_env : "null", github_actions ? github_actions : "null");
         fflush(stdout);
         
-        // In CI, always exit safely since we don't have model files
-        printf("⚠️ CI environment detected - exiting safely without model files\n");
-        printf("✅ C implementation compiled and started successfully\n");
-        printf("🏗️ Build verification completed\n");
-        printf("📋 This prevents segmentation faults in CI environments\n");
-        fflush(stdout);
-        return 0;
+        // Check if model files exist in CI
+        int model_exists = access("model.onnx", F_OK) == 0;
+        int vocab_exists = access("vocab.json", F_OK) == 0;
+        int scaler_exists = access("scaler.json", F_OK) == 0;
+        
+        printf("🔍 CI Model files check:\n");
+        printf("   - model.onnx: %s\n", model_exists ? "✅ EXISTS" : "❌ MISSING");
+        printf("   - vocab.json: %s\n", vocab_exists ? "✅ EXISTS" : "❌ MISSING");
+        printf("   - scaler.json: %s\n", scaler_exists ? "✅ EXISTS" : "❌ MISSING");
+        
+        if (!model_exists || !vocab_exists || !scaler_exists) {
+            printf("⚠️ Some model files missing in CI - exiting safely\n");
+            printf("✅ C implementation compiled and started successfully\n");
+            printf("🏗️ Build verification completed\n");
+            fflush(stdout);
+            return 0;
+        } else {
+            printf("✅ All model files found in CI - proceeding with inference!\n");
+        }
     }
     
     // Debug: Show current working directory and arguments
