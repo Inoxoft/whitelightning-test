@@ -184,22 +184,39 @@ void stop_cpu_monitoring(ResourceMetrics* metrics) {
 }
 
 float* preprocess_text(const char* text, const char* vocab_file, const char* scaler_file) {
+    printf("   🔧 Allocating vector memory...\n");
+    fflush(stdout);
+    
     float* vector = calloc(5000, sizeof(float));
     if (!vector) {
         printf("❌ Failed to allocate memory for vector\n");
         return NULL;
     }
+    printf("   ✅ Vector allocated\n");
+    fflush(stdout);
 
+    printf("   🔧 Opening vocab file: %s\n", vocab_file);
+    fflush(stdout);
+    
     FILE* f = fopen(vocab_file, "r");
     if (!f) {
         printf("❌ Failed to open vocab file: %s\n", vocab_file);
         free(vector);
         return NULL;
     }
+    printf("   ✅ Vocab file opened\n");
+    fflush(stdout);
 
+    printf("   🔧 Reading vocab file...\n");
+    fflush(stdout);
+    
     fseek(f, 0, SEEK_END);
     long len = ftell(f);
     fseek(f, 0, SEEK_SET);
+    
+    printf("   🔧 Vocab file size: %ld bytes\n", len);
+    fflush(stdout);
+    
     char* json_str = malloc(len + 1);
     if (fread(json_str, 1, len, f) != (size_t)len) {
         printf("❌ Failed to read vocab file completely\n");
@@ -210,6 +227,10 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     }
     json_str[len] = 0;
     fclose(f);
+    
+    printf("   ✅ Vocab file read successfully\n");
+    printf("   🔧 Parsing vocab JSON...\n");
+    fflush(stdout);
 
     cJSON* tfidf_data = cJSON_Parse(json_str);
     if (!tfidf_data) {
@@ -218,6 +239,9 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
         free(vector);
         return NULL;
     }
+    
+    printf("   ✅ Vocab JSON parsed successfully\n");
+    fflush(stdout);
 
     cJSON* vocab = cJSON_GetObjectItem(tfidf_data, "vocab");
     cJSON* idf = cJSON_GetObjectItem(tfidf_data, "idf");
@@ -354,22 +378,31 @@ void print_performance_summary(TimingMetrics* timing, ResourceMetrics* resources
 
 int test_single_text(const char* text, const char* model_path, const char* vocab_path, const char* scaler_path) {
     printf("🔄 Processing: %s\n", text);
+    fflush(stdout);
     
     // Initialize ONNX Runtime
+    printf("🔧 Step 1: Initializing ONNX Runtime API...\n");
+    fflush(stdout);
+    
     g_ort = OrtGetApiBase()->GetApi(ORT_API_VERSION);
     if (!g_ort) {
         printf("❌ Failed to initialize ONNX Runtime API\n");
         return 1;
     }
+    printf("✅ ONNX Runtime API initialized\n");
+    fflush(stdout);
 
     // Preprocessing
-    printf("🔧 Preprocessing text...\n");
+    printf("🔧 Step 2: Preprocessing text...\n");
+    fflush(stdout);
+    
     float* vector = preprocess_text(text, vocab_path, scaler_path);
     if (!vector) {
         printf("❌ Failed to preprocess text\n");
         return 1;
     }
     printf("✅ Preprocessing completed\n");
+    fflush(stdout);
 
     // Model setup
     printf("🔧 Setting up ONNX model...\n");
@@ -572,6 +605,20 @@ int main(int argc, char* argv[]) {
             printf("🔧 Running single test instead...\n");
             return test_single_text("This is a sample text for testing.", model_path, vocab_path, scaler_path);
         } else {
+            // SAFETY: In CI, let's try a minimal test first
+            if (ci_env || github_actions) {
+                printf("🔧 CI detected - attempting minimal test to isolate crash...\n");
+                printf("🔧 Testing with simple text first...\n");
+                fflush(stdout);
+                
+                // Try with a very simple text first
+                int result = test_single_text("good", model_path, vocab_path, scaler_path);
+                if (result == 0) {
+                    printf("✅ Simple test passed, now trying user text...\n");
+                    fflush(stdout);
+                }
+            }
+            
             // Use command line argument as text
             return test_single_text(argv[1], model_path, vocab_path, scaler_path);
         }
