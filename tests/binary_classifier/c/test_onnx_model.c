@@ -123,6 +123,7 @@ void get_system_info(SystemInfo* info) {
 }
 
 void* cpu_monitor_thread(void* arg) {
+    (void)arg; // Suppress unused parameter warning
     while (g_cpu_monitor.monitoring) {
         double cpu_usage = get_cpu_usage_percent();
         
@@ -200,7 +201,13 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     long len = ftell(f);
     fseek(f, 0, SEEK_SET);
     char* json_str = malloc(len + 1);
-    fread(json_str, 1, len, f);
+    if (fread(json_str, 1, len, f) != len) {
+        printf("❌ Failed to read vocab file completely\n");
+        free(json_str);
+        free(vector);
+        fclose(f);
+        return NULL;
+    }
     json_str[len] = 0;
     fclose(f);
 
@@ -235,7 +242,15 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     len = ftell(f);
     fseek(f, 0, SEEK_SET);
     char* scaler_str = malloc(len + 1);
-    fread(scaler_str, 1, len, f);
+    if (fread(scaler_str, 1, len, f) != len) {
+        printf("❌ Failed to read scaler file completely\n");
+        free(scaler_str);
+        free(json_str);
+        free(vector);
+        cJSON_Delete(tfidf_data);
+        fclose(f);
+        return NULL;
+    }
     scaler_str[len] = 0;
     fclose(f);
 
@@ -311,6 +326,7 @@ void print_system_info(SystemInfo* info) {
 }
 
 void print_performance_summary(TimingMetrics* timing, ResourceMetrics* resources, int text_count) {
+    (void)text_count; // Suppress unused parameter warning
     printf("📈 PERFORMANCE SUMMARY:\n");
     printf("   Total Processing Time: %.2fms\n", timing->total_time_ms);
     printf("   ┣━ Preprocessing: %.2fms (%.1f%%)\n", 
@@ -521,14 +537,24 @@ int run_performance_benchmark(const char* model_path, const char* vocab_path, co
     printf("🔥 Warming up model (5 runs)...\n");
     for (int i = 0; i < 5; i++) {
         OrtValue* output_tensor = NULL;
-        g_ort->Run(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1, 
+        status = g_ort->Run(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1, 
                    output_names, 1, &output_tensor);
+        if (status) {
+            printf("❌ Warmup inference failed\n");
+            return 1;
+        }
         g_ort->ReleaseValue(output_tensor);
     }
     
     // Performance arrays
     double* times = malloc(num_runs * sizeof(double));
     double* inference_times = malloc(num_runs * sizeof(double));
+    if (!times || !inference_times) {
+        printf("❌ Failed to allocate memory for timing arrays\n");
+        free(times);
+        free(inference_times);
+        return 1;
+    }
     
     printf("📊 Running %d performance tests...\n", num_runs);
     double overall_start = get_time_ms();
@@ -541,8 +567,12 @@ int run_performance_benchmark(const char* model_path, const char* vocab_path, co
         double start_time = get_time_ms();
         double inference_start = get_time_ms();
         OrtValue* output_tensor = NULL;
-        g_ort->Run(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1, 
+        status = g_ort->Run(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1, 
                    output_names, 1, &output_tensor);
+        if (status) {
+            printf("❌ Inference failed at run %d\n", i);
+            continue; // Skip this run but continue with others
+        }
         double inference_time = get_time_ms() - inference_start;
         double end_time = get_time_ms();
         
