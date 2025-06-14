@@ -243,16 +243,37 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     printf("   ✅ Vocab JSON parsed successfully\n");
     fflush(stdout);
 
+    printf("   🔧 Getting vocab object from JSON...\n");
+    fflush(stdout);
+    
     cJSON* vocab = cJSON_GetObjectItem(tfidf_data, "vocab");
-    cJSON* idf = cJSON_GetObjectItem(tfidf_data, "idf");
-    if (!vocab || !idf) {
-        printf("❌ Missing vocab or idf in JSON\n");
+    if (!vocab) {
+        printf("❌ Missing 'vocab' object in JSON\n");
         free(json_str);
         free(vector);
         cJSON_Delete(tfidf_data);
         return NULL;
     }
+    printf("   ✅ Vocab object found\n");
+    fflush(stdout);
+    
+    printf("   🔧 Getting idf array from JSON...\n");
+    fflush(stdout);
+    
+    cJSON* idf = cJSON_GetObjectItem(tfidf_data, "idf");
+    if (!idf) {
+        printf("❌ Missing 'idf' array in JSON\n");
+        free(json_str);
+        free(vector);
+        cJSON_Delete(tfidf_data);
+        return NULL;
+    }
+    printf("   ✅ IDF array found\n");
+    fflush(stdout);
 
+    printf("   🔧 Opening scaler file: %s\n", scaler_file);
+    fflush(stdout);
+    
     f = fopen(scaler_file, "r");
     if (!f) {
         printf("❌ Failed to open scaler file: %s\n", scaler_file);
@@ -261,10 +282,19 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
         cJSON_Delete(tfidf_data);
         return NULL;
     }
+    printf("   ✅ Scaler file opened\n");
+    fflush(stdout);
 
+    printf("   🔧 Reading scaler file...\n");
+    fflush(stdout);
+    
     fseek(f, 0, SEEK_END);
     len = ftell(f);
     fseek(f, 0, SEEK_SET);
+    
+    printf("   🔧 Scaler file size: %ld bytes\n", len);
+    fflush(stdout);
+    
     char* scaler_str = malloc(len + 1);
     if (fread(scaler_str, 1, len, f) != (size_t)len) {
         printf("❌ Failed to read scaler file completely\n");
@@ -277,6 +307,10 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     }
     scaler_str[len] = 0;
     fclose(f);
+    
+    printf("   ✅ Scaler file read successfully\n");
+    printf("   🔧 Parsing scaler JSON...\n");
+    fflush(stdout);
 
     cJSON* scaler_data = cJSON_Parse(scaler_str);
     if (!scaler_data) {
@@ -287,11 +321,16 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
         cJSON_Delete(tfidf_data);
         return NULL;
     }
+    
+    printf("   ✅ Scaler JSON parsed successfully\n");
+    fflush(stdout);
 
+    printf("   🔧 Getting mean and scale arrays...\n");
+    fflush(stdout);
+    
     cJSON* mean = cJSON_GetObjectItem(scaler_data, "mean");
-    cJSON* scale = cJSON_GetObjectItem(scaler_data, "scale");
-    if (!mean || !scale) {
-        printf("❌ Missing mean or scale in scaler JSON\n");
+    if (!mean) {
+        printf("❌ Missing 'mean' array in scaler JSON\n");
         free(json_str);
         free(scaler_str);
         free(vector);
@@ -299,22 +338,68 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
         cJSON_Delete(scaler_data);
         return NULL;
     }
+    
+    cJSON* scale = cJSON_GetObjectItem(scaler_data, "scale");
+    if (!scale) {
+        printf("❌ Missing 'scale' array in scaler JSON\n");
+        free(json_str);
+        free(scaler_str);
+        free(vector);
+        cJSON_Delete(tfidf_data);
+        cJSON_Delete(scaler_data);
+        return NULL;
+    }
+    
+    printf("   ✅ Mean and scale arrays found\n");
+    fflush(stdout);
 
     // Process text
+    printf("   🔧 Processing text: '%s'\n", text);
+    fflush(stdout);
+    
     char* text_copy = strdup(text);
     for (char* p = text_copy; *p; p++) *p = tolower(*p);
+    
+    printf("   🔧 Text converted to lowercase: '%s'\n", text_copy);
+    fflush(stdout);
 
+    printf("   🔧 Tokenizing and processing words...\n");
+    fflush(stdout);
+    
     char* word = strtok(text_copy, " \t\n");
+    int word_count = 0;
     while (word) {
+        word_count++;
+        printf("   🔧 Processing word %d: '%s'\n", word_count, word);
+        fflush(stdout);
+        
         cJSON* idx = cJSON_GetObjectItem(vocab, word);
         if (idx) {
             int i = idx->valueint;
+            printf("   ✅ Word '%s' found at index %d\n", word, i);
+            fflush(stdout);
+            
             if (i < 5000) {
-                vector[i] += cJSON_GetArrayItem(idf, i)->valuedouble;
+                cJSON* idf_item = cJSON_GetArrayItem(idf, i);
+                if (idf_item) {
+                    vector[i] += idf_item->valuedouble;
+                    printf("   ✅ Added IDF value %.6f for word '%s'\n", idf_item->valuedouble, word);
+                } else {
+                    printf("   ⚠️ No IDF value found for index %d\n", i);
+                }
+            } else {
+                printf("   ⚠️ Index %d >= 5000, skipping\n", i);
             }
+        } else {
+            printf("   ⚠️ Word '%s' not found in vocabulary\n", word);
         }
+        fflush(stdout);
+        
         word = strtok(NULL, " \t\n");
     }
+    
+    printf("   ✅ Processed %d words\n", word_count);
+    fflush(stdout);
 
     // Apply scaling
     for (int i = 0; i < 5000; i++) {
