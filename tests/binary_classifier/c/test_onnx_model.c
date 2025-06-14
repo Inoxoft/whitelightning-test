@@ -647,7 +647,7 @@ int main(int argc, char* argv[]) {
     const char* vocab_path = "vocab.json";
     const char* scaler_path = "scaler.json";
     
-    // Check if model files exist
+    // CRITICAL: Check if model files exist FIRST, regardless of arguments
     int files_exist = (access(model_path, F_OK) == 0) && 
                      (access(vocab_path, F_OK) == 0) && 
                      (access(scaler_path, F_OK) == 0);
@@ -661,6 +661,16 @@ int main(int argc, char* argv[]) {
         printf("\n🔧 This is expected in CI environments without model files\n");
         printf("✅ C implementation compiled successfully\n");
         printf("🏗️ Build verification completed\n");
+        
+        // Show what arguments were passed for debugging
+        if (argc > 1) {
+            printf("📋 Arguments received: ");
+            for (int i = 1; i < argc; i++) {
+                printf("'%s' ", argv[i]);
+            }
+            printf("\n");
+        }
+        
         return 0;
     }
     
