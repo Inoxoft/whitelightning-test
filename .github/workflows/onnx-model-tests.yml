@@ -181,31 +181,31 @@ jobs:
             ln -sf ../../../onnxruntime-linux-x64-1.22.0 onnxruntime
           fi
           
-             - name: Build C++ implementation
-         run: |
-           # Set up library path for ONNX Runtime
-           export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
-           
-           if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
-             cd tests/binary_classifier/cpp
-             echo "🔨 Building binary classifier C++ implementation..."
-             echo "📍 Working directory: $(pwd)"
-             echo "🔗 Library path: $LD_LIBRARY_PATH"
-             
-             # Build using Makefile
-             make clean
-             make
-               
-           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
-             cd tests/multiclass_classifier/cpp
-             echo "🔨 Building multiclass classifier C++ implementation..."
-             echo "📍 Working directory: $(pwd)"
-             echo "🔗 Library path: $LD_LIBRARY_PATH"
-             
-             # Build using Makefile
-             make clean
-             make
-           fi
+      - name: Build C++ implementation
+        run: |
+          # Set up library path for ONNX Runtime
+          export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
+          
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+            cd tests/binary_classifier/cpp
+            echo "🔨 Building binary classifier C++ implementation..."
+            echo "📍 Working directory: $(pwd)"
+            echo "🔗 Library path: $LD_LIBRARY_PATH"
+            
+            # Build using Makefile
+            make clean
+            make
+              
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+            cd tests/multiclass_classifier/cpp
+            echo "🔨 Building multiclass classifier C++ implementation..."
+            echo "📍 Working directory: $(pwd)"
+            echo "🔗 Library path: $LD_LIBRARY_PATH"
+            
+            # Build using Makefile
+            make clean
+            make
+          fi
           
       - name: Run C++ Tests
         run: |
