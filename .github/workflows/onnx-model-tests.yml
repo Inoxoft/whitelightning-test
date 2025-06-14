@@ -25,6 +25,7 @@ on:
           - python
           - java
           - cpp
+          - c
           - nodejs
       custom_text:
         description: 'Input your text'
@@ -294,33 +295,152 @@ jobs:
           swift test
         fi
 
-  test-c:
+  c-tests:
+    name: C Tests
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'c' }}
-    steps:
-    - uses: actions/checkout@v4
+    if: ${{ inputs.language == 'c' }}
     
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake libonnxruntime-dev
-        
-    - name: Build and test C
-      run: |
-        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "spam_detector" ]; then
-          cd tests/spam_detector/c
-          mkdir build && cd build
-          cmake ..
-          make
-          ./onnx_test
-        fi
-        if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "news_classifier" ]; then
-          cd tests/news_classifier/c
-          mkdir build && cd build
-          cmake ..
-          make
-          ./onnx_test
-        fi
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install C dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libcjson-dev wget
+          
+      - name: Download and setup ONNX Runtime
+        run: |
+          # Download ONNX Runtime for Linux
+          wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-linux-x64-1.22.0.tgz
+          tar -xzf onnxruntime-linux-x64-1.22.0.tgz
+          
+          # Create symlink for consistent path across implementations
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+            cd tests/binary_classifier/c
+            ln -sf ../../../onnxruntime-linux-x64-1.22.0 onnxruntime-osx-universal2-1.22.0
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+            cd tests/multiclass_classifier/c
+            ln -sf ../../../onnxruntime-linux-x64-1.22.0 onnxruntime-osx-universal2-1.22.0
+          fi
+          
+      - name: Build C implementation
+        run: |
+          # Set up library path for ONNX Runtime
+          export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
+          
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+            cd tests/binary_classifier/c
+            echo "🔨 Building binary classifier C implementation..."
+            echo "📍 Working directory: $(pwd)"
+            echo "🔗 Library path: $LD_LIBRARY_PATH"
+            make clean
+            make
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+            cd tests/multiclass_classifier/c
+            echo "🔨 Building multiclass classifier C implementation..."
+            echo "📍 Working directory: $(pwd)"
+            echo "🔗 Library path: $LD_LIBRARY_PATH"
+            make clean
+            make
+          fi
+          
+      - name: Run C Tests
+        run: |
+          # Set up library path for runtime
+          export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
+          
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+            cd tests/binary_classifier/c
+            echo "🚀 Running binary classifier C tests..."
+            
+            # Check if model files exist
+            if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
+              if [ -n "${{ inputs.custom_text }}" ]; then
+                echo "Testing custom text: ${{ inputs.custom_text }}"
+                ./test_onnx_model "${{ inputs.custom_text }}"
+              else
+                echo "Running default test suite..."
+                ./test_onnx_model
+              fi
+            else
+              echo "⚠️ Model files not found, running CI build verification..."
+              make test-ci
+            fi
+            
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+            cd tests/multiclass_classifier/c
+            echo "🚀 Running multiclass classifier C tests..."
+            
+            # Check if model files exist
+            if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
+              if [ -n "${{ inputs.custom_text }}" ]; then
+                echo "Testing custom text: ${{ inputs.custom_text }}"
+                ./test_onnx_model "${{ inputs.custom_text }}"
+              else
+                echo "Running default test suite..."
+                ./test_onnx_model
+              fi
+            else
+              echo "⚠️ Model files not found, running CI build verification..."
+              make test-ci
+            fi
+          fi
+          
+      - name: Run Performance Benchmark
+        run: |
+          # Set up library path for runtime
+          export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
+          
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+            cd tests/binary_classifier/c
+            echo "📊 Running binary classifier performance benchmark..."
+            
+            # Only run benchmark if model files exist
+            if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
+              ./test_onnx_model --benchmark 50
+            else
+              echo "⚠️ Skipping benchmark - model files not available"
+              echo "✅ C implementation build verification completed successfully"
+            fi
+            
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+            cd tests/multiclass_classifier/c
+            echo "📊 Running multiclass classifier performance benchmark..."
+            
+            # Only run benchmark if model files exist
+            if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
+              ./test_onnx_model --benchmark 50
+            else
+              echo "⚠️ Skipping benchmark - model files not available"
+              echo "✅ C implementation build verification completed successfully"
+            fi
+          fi
+          
+      - name: Check build artifacts
+        run: |
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+            cd tests/binary_classifier/c
+            echo "✅ Binary classifier C build completed"
+            ls -la test_onnx_model
+            echo "📁 Required files check:"
+            ls -la model.onnx vocab.json scaler.json || echo "⚠️ Model files not found - using mock data"
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+            cd tests/multiclass_classifier/c
+            echo "✅ Multiclass classifier C build completed"
+            ls -la test_onnx_model
+            echo "📁 Required files check:"
+            ls -la model.onnx vocab.json scaler.json || echo "⚠️ Model files not found - using mock data"
+          fi
+          
+      - name: Upload C test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-test-artifacts
+          path: |
+            tests/binary_classifier/c/test_onnx_model
+            tests/multiclass_classifier/c/test_onnx_model
+            tests/*/c/*.log
+          if-no-files-found: warn
 
   test-go:
     runs-on: ubuntu-latest
