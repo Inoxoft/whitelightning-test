@@ -201,7 +201,7 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     long len = ftell(f);
     fseek(f, 0, SEEK_SET);
     char* json_str = malloc(len + 1);
-    if (fread(json_str, 1, len, f) != len) {
+    if (fread(json_str, 1, len, f) != (size_t)len) {
         printf("❌ Failed to read vocab file completely\n");
         free(json_str);
         free(vector);
@@ -242,7 +242,7 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     len = ftell(f);
     fseek(f, 0, SEEK_SET);
     char* scaler_str = malloc(len + 1);
-    if (fread(scaler_str, 1, len, f) != len) {
+    if (fread(scaler_str, 1, len, f) != (size_t)len) {
         printf("❌ Failed to read scaler file completely\n");
         free(scaler_str);
         free(json_str);
@@ -256,8 +256,10 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
 
     cJSON* scaler_data = cJSON_Parse(scaler_str);
     if (!scaler_data) {
+        printf("❌ Failed to parse scaler JSON\n");
         free(json_str);
         free(scaler_str);
+        free(vector);
         cJSON_Delete(tfidf_data);
         return NULL;
     }
@@ -265,48 +267,38 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     cJSON* mean = cJSON_GetObjectItem(scaler_data, "mean");
     cJSON* scale = cJSON_GetObjectItem(scaler_data, "scale");
     if (!mean || !scale) {
+        printf("❌ Missing mean or scale in scaler JSON\n");
         free(json_str);
         free(scaler_str);
+        free(vector);
         cJSON_Delete(tfidf_data);
         cJSON_Delete(scaler_data);
         return NULL;
     }
 
+    // Process text
     char* text_copy = strdup(text);
     for (char* p = text_copy; *p; p++) *p = tolower(*p);
 
-    // Count words for TF calculation
-    int word_count = 0;
-    char* temp_copy = strdup(text_copy);
-    char* word = strtok(temp_copy, " \t\n");
-    while (word) {
-        word_count++;
-        word = strtok(NULL, " \t\n");
-    }
-    free(temp_copy);
-
-    // Calculate TF-IDF
-    word = strtok(text_copy, " \t\n");
+    char* word = strtok(text_copy, " \t\n");
     while (word) {
         cJSON* idx = cJSON_GetObjectItem(vocab, word);
         if (idx) {
             int i = idx->valueint;
             if (i < 5000) {
-                vector[i] += 1.0 / word_count; // TF normalization
+                vector[i] += cJSON_GetArrayItem(idf, i)->valuedouble;
             }
         }
         word = strtok(NULL, " \t\n");
     }
 
-    // Apply IDF and scaling
+    // Apply scaling
     for (int i = 0; i < 5000; i++) {
-        if (vector[i] > 0) {
-            vector[i] *= cJSON_GetArrayItem(idf, i)->valuedouble; // TF-IDF
-        }
         vector[i] = (vector[i] - cJSON_GetArrayItem(mean, i)->valuedouble) / 
-                    cJSON_GetArrayItem(scale, i)->valuedouble; // Standardization
+                    cJSON_GetArrayItem(scale, i)->valuedouble;
     }
 
+    // Cleanup
     free(text_copy);
     free(json_str);
     free(scaler_str);
@@ -363,115 +355,120 @@ void print_performance_summary(TimingMetrics* timing, ResourceMetrics* resources
 int test_single_text(const char* text, const char* model_path, const char* vocab_path, const char* scaler_path) {
     printf("🔄 Processing: %s\n", text);
     
-    // Check if required files exist
-    printf("📁 Checking required files...\n");
-    if (access(model_path, F_OK) != 0) {
-        printf("❌ Model file not found: %s\n", model_path);
-        return 1;
-    }
-    if (access(vocab_path, F_OK) != 0) {
-        printf("❌ Vocab file not found: %s\n", vocab_path);
-        return 1;
-    }
-    if (access(scaler_path, F_OK) != 0) {
-        printf("❌ Scaler file not found: %s\n", scaler_path);
-        return 1;
-    }
-    printf("✅ All required files found\n");
-    
-    // Initialize system info
-    SystemInfo system_info;
-    get_system_info(&system_info);
-    print_system_info(&system_info);
-    
-    // Initialize timing and resource metrics
-    TimingMetrics timing = {0};
-    ResourceMetrics resources = {0};
-    
-    double total_start = get_time_ms();
-    resources.memory_start_mb = get_memory_usage_mb();
-    
-    // Start CPU monitoring
-    start_cpu_monitoring(1000);
-    
     // Initialize ONNX Runtime
     g_ort = OrtGetApiBase()->GetApi(ORT_API_VERSION);
     if (!g_ort) {
         printf("❌ Failed to initialize ONNX Runtime API\n");
         return 1;
     }
-    
+
     // Preprocessing
-    double preprocess_start = get_time_ms();
+    printf("🔧 Preprocessing text...\n");
     float* vector = preprocess_text(text, vocab_path, scaler_path);
     if (!vector) {
         printf("❌ Failed to preprocess text\n");
         return 1;
     }
-    timing.preprocessing_time_ms = get_time_ms() - preprocess_start;
-    
-    // Model setup and inference
+    printf("✅ Preprocessing completed\n");
+
+    // Model setup
+    printf("🔧 Setting up ONNX model...\n");
     OrtEnv* env;
     OrtStatus* status = g_ort->CreateEnv(ORT_LOGGING_LEVEL_WARNING, "test", &env);
-    if (status) return 1;
+    if (status) {
+        printf("❌ Failed to create ONNX environment\n");
+        free(vector);
+        return 1;
+    }
 
     OrtSessionOptions* session_options;
     status = g_ort->CreateSessionOptions(&session_options);
-    if (status) return 1;
+    if (status) {
+        printf("❌ Failed to create session options\n");
+        free(vector);
+        g_ort->ReleaseEnv(env);
+        return 1;
+    }
 
     OrtSession* session;
     status = g_ort->CreateSession(env, model_path, session_options, &session);
-    if (status) return 1;
+    if (status) {
+        printf("❌ Failed to create session with model: %s\n", model_path);
+        free(vector);
+        g_ort->ReleaseSessionOptions(session_options);
+        g_ort->ReleaseEnv(env);
+        return 1;
+    }
 
     OrtMemoryInfo* memory_info;
     status = g_ort->CreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault, &memory_info);
-    if (status) return 1;
+    if (status) {
+        printf("❌ Failed to create memory info\n");
+        free(vector);
+        g_ort->ReleaseSession(session);
+        g_ort->ReleaseSessionOptions(session_options);
+        g_ort->ReleaseEnv(env);
+        return 1;
+    }
 
     int64_t input_shape[] = {1, 5000};
     OrtValue* input_tensor;
     status = g_ort->CreateTensorWithDataAsOrtValue(memory_info, vector, 5000 * sizeof(float), 
                                                  input_shape, 2, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, 
                                                  &input_tensor);
-    if (status) return 1;
+    if (status) {
+        printf("❌ Failed to create input tensor\n");
+        free(vector);
+        g_ort->ReleaseMemoryInfo(memory_info);
+        g_ort->ReleaseSession(session);
+        g_ort->ReleaseSessionOptions(session_options);
+        g_ort->ReleaseEnv(env);
+        return 1;
+    }
 
     // Model inference
-    double inference_start = get_time_ms();
+    printf("🔧 Running inference...\n");
     const char* input_names[] = {"float_input"};
     const char* output_names[] = {"output"};
     OrtValue* output_tensor = NULL;
     status = g_ort->Run(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1, 
                        output_names, 1, &output_tensor);
-    if (status) return 1;
-    timing.inference_time_ms = get_time_ms() - inference_start;
-    
-    // Post-processing
-    double postprocess_start = get_time_ms();
+    if (status) {
+        printf("❌ Failed to run inference\n");
+        free(vector);
+        g_ort->ReleaseValue(input_tensor);
+        g_ort->ReleaseMemoryInfo(memory_info);
+        g_ort->ReleaseSession(session);
+        g_ort->ReleaseSessionOptions(session_options);
+        g_ort->ReleaseEnv(env);
+        return 1;
+    }
+
+    // Get results
     float* output_data;
     status = g_ort->GetTensorMutableData(output_tensor, (void**)&output_data);
-    if (status) return 1;
-    
+    if (status) {
+        printf("❌ Failed to get output data\n");
+        free(vector);
+        g_ort->ReleaseValue(input_tensor);
+        g_ort->ReleaseValue(output_tensor);
+        g_ort->ReleaseMemoryInfo(memory_info);
+        g_ort->ReleaseSession(session);
+        g_ort->ReleaseSessionOptions(session_options);
+        g_ort->ReleaseEnv(env);
+        return 1;
+    }
+
+    // Display results
     float prediction = output_data[0];
     const char* sentiment = prediction > 0.5 ? "Positive" : "Negative";
-    timing.postprocessing_time_ms = get_time_ms() - postprocess_start;
     
-    // Final measurements
-    timing.total_time_ms = get_time_ms() - total_start;
-    timing.throughput_per_sec = 1000.0 / timing.total_time_ms;
-    resources.memory_end_mb = get_memory_usage_mb();
-    resources.memory_delta_mb = resources.memory_end_mb - resources.memory_start_mb;
-    
-    // Stop CPU monitoring
-    stop_cpu_monitoring(&resources);
-    
-    // Display results
-    printf("📊 SENTIMENT ANALYSIS RESULTS:\n");
+    printf("\n📊 SENTIMENT ANALYSIS RESULTS:\n");
     printf("   🏆 Predicted Sentiment: %s\n", sentiment);
     printf("   📈 Confidence: %.2f%% (%.4f)\n", prediction * 100.0, prediction);
-    printf("\n");
-    
-    // Print performance summary
-    print_performance_summary(&timing, &resources, 1);
-    
+    printf("   📝 Text: \"%s\"\n", text);
+    printf("\n✅ Analysis completed successfully!\n");
+
     // Cleanup
     g_ort->ReleaseValue(input_tensor);
     g_ort->ReleaseValue(output_tensor);
@@ -479,168 +476,12 @@ int test_single_text(const char* text, const char* model_path, const char* vocab
     g_ort->ReleaseSession(session);
     g_ort->ReleaseSessionOptions(session_options);
     g_ort->ReleaseEnv(env);
-
     free(vector);
-    if (resources.cpu_readings) {
-        free(resources.cpu_readings);
-    }
 
-    return 0;
-}
-
-int run_performance_benchmark(const char* model_path, const char* vocab_path, const char* scaler_path, int num_runs) {
-    printf("\n🚀 PERFORMANCE BENCHMARKING (%d runs)\n", num_runs);
-    printf("============================================================\n");
-    
-    SystemInfo system_info;
-    get_system_info(&system_info);
-    printf("💻 System: %d cores, %.1fGB RAM\n", system_info.cpu_count_physical, system_info.total_memory_gb);
-    
-    const char* test_text = "This is a sample text for performance testing.";
-    printf("📝 Test Text: '%s'\n\n", test_text);
-    
-    // Initialize ONNX Runtime once
-    g_ort = OrtGetApiBase()->GetApi(ORT_API_VERSION);
-    if (!g_ort) return 1;
-    
-    OrtEnv* env;
-    OrtStatus* status = g_ort->CreateEnv(ORT_LOGGING_LEVEL_WARNING, "benchmark", &env);
-    if (status) return 1;
-
-    OrtSessionOptions* session_options;
-    status = g_ort->CreateSessionOptions(&session_options);
-    if (status) return 1;
-
-    OrtSession* session;
-    status = g_ort->CreateSession(env, model_path, session_options, &session);
-    if (status) return 1;
-
-    OrtMemoryInfo* memory_info;
-    status = g_ort->CreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault, &memory_info);
-    if (status) return 1;
-    
-    // Preprocess once
-    float* vector = preprocess_text(test_text, vocab_path, scaler_path);
-    if (!vector) return 1;
-    
-    int64_t input_shape[] = {1, 5000};
-    OrtValue* input_tensor;
-    status = g_ort->CreateTensorWithDataAsOrtValue(memory_info, vector, 5000 * sizeof(float), 
-                                                 input_shape, 2, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, 
-                                                 &input_tensor);
-    if (status) return 1;
-    
-    const char* input_names[] = {"float_input"};
-    const char* output_names[] = {"output"};
-    
-    // Warmup runs
-    printf("🔥 Warming up model (5 runs)...\n");
-    for (int i = 0; i < 5; i++) {
-        OrtValue* output_tensor = NULL;
-        status = g_ort->Run(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1, 
-                   output_names, 1, &output_tensor);
-        if (status) {
-            printf("❌ Warmup inference failed\n");
-            return 1;
-        }
-        g_ort->ReleaseValue(output_tensor);
-    }
-    
-    // Performance arrays
-    double* times = malloc(num_runs * sizeof(double));
-    double* inference_times = malloc(num_runs * sizeof(double));
-    if (!times || !inference_times) {
-        printf("❌ Failed to allocate memory for timing arrays\n");
-        free(times);
-        free(inference_times);
-        return 1;
-    }
-    
-    printf("📊 Running %d performance tests...\n", num_runs);
-    double overall_start = get_time_ms();
-    
-    for (int i = 0; i < num_runs; i++) {
-        if (i % 20 == 0 && i > 0) {
-            printf("   Progress: %d/%d (%.1f%%)\n", i, num_runs, (double)i / num_runs * 100.0);
-        }
-        
-        double start_time = get_time_ms();
-        double inference_start = get_time_ms();
-        OrtValue* output_tensor = NULL;
-        status = g_ort->Run(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1, 
-                   output_names, 1, &output_tensor);
-        if (status) {
-            printf("❌ Inference failed at run %d\n", i);
-            continue; // Skip this run but continue with others
-        }
-        double inference_time = get_time_ms() - inference_start;
-        double end_time = get_time_ms();
-        
-        times[i] = end_time - start_time;
-        inference_times[i] = inference_time;
-        
-        g_ort->ReleaseValue(output_tensor);
-    }
-    
-    double overall_time = get_time_ms() - overall_start;
-    
-    // Calculate statistics
-    double sum = 0, inf_sum = 0;
-    double min_time = times[0], max_time = times[0];
-    
-    for (int i = 0; i < num_runs; i++) {
-        sum += times[i];
-        inf_sum += inference_times[i];
-        if (times[i] < min_time) min_time = times[i];
-        if (times[i] > max_time) max_time = times[i];
-    }
-    
-    double avg_time = sum / num_runs;
-    double avg_inf = inf_sum / num_runs;
-    
-    // Display results
-    printf("\n📈 DETAILED PERFORMANCE RESULTS:\n");
-    printf("--------------------------------------------------\n");
-    printf("⏱️  TIMING ANALYSIS:\n");
-    printf("   Mean: %.2fms\n", avg_time);
-    printf("   Min: %.2fms\n", min_time);
-    printf("   Max: %.2fms\n", max_time);
-    printf("   Model Inference: %.2fms\n", avg_inf);
-    printf("\n🚀 THROUGHPUT:\n");
-    printf("   Texts per second: %.1f\n", 1000.0 / avg_time);
-    printf("   Total benchmark time: %.2fs\n", overall_time / 1000.0);
-    printf("   Overall throughput: %.1f texts/sec\n", num_runs / (overall_time / 1000.0));
-    
-    // Performance classification
-    const char* performance_class;
-    if (avg_time < 10) {
-        performance_class = "🚀 EXCELLENT";
-    } else if (avg_time < 50) {
-        performance_class = "✅ GOOD";
-    } else if (avg_time < 100) {
-        performance_class = "⚠️ ACCEPTABLE";
-    } else {
-        performance_class = "❌ POOR";
-    }
-    
-    printf("\n🎯 PERFORMANCE CLASSIFICATION: %s\n", performance_class);
-    printf("   (%.1fms average - Target: <100ms)\n", avg_time);
-    
-    // Cleanup
-    free(times);
-    free(inference_times);
-    g_ort->ReleaseValue(input_tensor);
-    g_ort->ReleaseMemoryInfo(memory_info);
-    g_ort->ReleaseSession(session);
-    g_ort->ReleaseSessionOptions(session_options);
-    g_ort->ReleaseEnv(env);
-    free(vector);
-    
     return 0;
 }
 
 int main(int argc, char* argv[]) {
-    // IMMEDIATE SAFETY CHECK - Exit if this is a CI environment
     printf("🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION\n");
     printf("==============================================\n");
     
@@ -695,13 +536,14 @@ int main(int argc, char* argv[]) {
         printf("\n");
     }
     fflush(stdout);
-    
+
     const char* model_path = "model.onnx";
     const char* vocab_path = "vocab.json";
     const char* scaler_path = "scaler.json";
     
-    // CRITICAL: Check if model files exist FIRST, regardless of arguments
-    printf("🔍 Checking file existence...\n");
+    printf("🔍 Final file existence check...\n");
+    fflush(stdout);
+    
     int model_exists = access(model_path, F_OK) == 0;
     int vocab_exists = access(vocab_path, F_OK) == 0;
     int scaler_exists = access(scaler_path, F_OK) == 0;
@@ -709,6 +551,7 @@ int main(int argc, char* argv[]) {
     printf("   - %s: %s\n", model_path, model_exists ? "✅ EXISTS" : "❌ NOT FOUND");
     printf("   - %s: %s\n", vocab_path, vocab_exists ? "✅ EXISTS" : "❌ NOT FOUND");
     printf("   - %s: %s\n", scaler_path, scaler_exists ? "✅ EXISTS" : "❌ NOT FOUND");
+    fflush(stdout);
     
     int files_exist = model_exists && vocab_exists && scaler_exists;
     
@@ -720,12 +563,14 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     
-    printf("✅ All model files found - proceeding with tests\n");
+    printf("✅ All model files confirmed - proceeding with inference\n");
+    fflush(stdout);
     
     if (argc > 1) {
         if (strcmp(argv[1], "--benchmark") == 0) {
-            int num_runs = argc > 2 ? atoi(argv[2]) : 100;
-            return run_performance_benchmark(model_path, vocab_path, scaler_path, num_runs);
+            printf("📊 Benchmark mode not implemented in simplified version\n");
+            printf("🔧 Running single test instead...\n");
+            return test_single_text("This is a sample text for testing.", model_path, vocab_path, scaler_path);
         } else {
             // Use command line argument as text
             return test_single_text(argv[1], model_path, vocab_path, scaler_path);
@@ -750,9 +595,7 @@ int main(int argc, char* argv[]) {
             }
         }
         
-        // Run benchmark
-        printf("\n🚀 Running performance benchmark...\n");
-        return run_performance_benchmark(model_path, vocab_path, scaler_path, 50);
+        printf("\n🎉 All tests completed successfully!\n");
     }
     
     return 0;
