@@ -516,5 +516,5 @@ Tests examples from each category:
 For issues and questions:
 - Create an issue in the repository
 - Check existing documentation
-- Review troubleshooting section
+- Review troubleshooting section 
 - For multiclass classifier issues, include performance_results.json 
