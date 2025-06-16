@@ -1,5 +1,5 @@
 name: binary_classifier_flutter
-description: Flutter Binary Classifier with ONNX Runtime and System Monitoring
+description: Flutter Binary Classifier with ONNX Runtime
 version: 1.0.0+1
 
 environment:
@@ -13,21 +13,8 @@ dependencies:
   # ONNX Runtime for model inference
   onnxruntime: ^1.16.0
   
-  # System information and monitoring
-  device_info_plus: ^9.1.0
-  system_info2: ^4.0.0
-  
-  # Performance monitoring
-  stopwatch: ^0.1.0
-  
   # UI components
   cupertino_icons: ^1.0.2
-  
-  # Charts for performance visualization
-  fl_chart: ^0.65.0
-  
-  # File operations
-  path_provider: ^2.1.1
 
 dev_dependencies:
   flutter_test:
