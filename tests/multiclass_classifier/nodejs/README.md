@@ -1,6 +1,6 @@
-# ONNX Multiclass Classifier - Node.js Implementation
+# ONNX Multiclass Classifier - JavaScript Implementation
 
-A high-performance news category classifier using ONNX Runtime for Node.js with comprehensive performance monitoring and system information display.
+A high-performance news category classifier using ONNX Runtime for JavaScript (Node.js) with comprehensive performance monitoring and system information display.
 
 ## 🚀 Features
 
@@ -14,7 +14,7 @@ A high-performance news category classifier using ONNX Runtime for Node.js with 
 ## 📋 Requirements
 
 - Node.js 18.0.0 or higher
-- ONNX Runtime for Node.js 1.22.0
+- ONNX Runtime for JavaScript 1.19.2
 - Model files: `model.onnx`, `vocab.json`, `scaler.json`
 
 ## 🛠️ Installation
@@ -90,8 +90,8 @@ node test_onnx_model.js --benchmark 500
 
 ### Sample Output
 ```
-🤖 ONNX MULTICLASS CLASSIFIER - NODE.JS IMPLEMENTATION
-====================================================
+🤖 ONNX MULTICLASS CLASSIFIER - JAVASCRIPT IMPLEMENTATION
+========================================================
 
 🔄 Processing: France defeats Argentina in World Cup final
 
@@ -100,7 +100,7 @@ node test_onnx_model.js --benchmark 500
    Processor: arm64
    CPU Cores: 8
    Total Memory: 16.0 GB
-   Runtime: Node.js Implementation
+   Runtime: JavaScript Implementation
    Node.js Version: v18.17.0
    ONNX Runtime Version: 1.22.0
 
@@ -160,14 +160,14 @@ The implementation includes CI-friendly features:
 // Graceful handling when model files are missing
 if (!checkModelFiles()) {
     console.log('⚠️ Model files not found - exiting safely');
-    console.log('✅ Node.js implementation compiled successfully');
+    console.log('✅ JavaScript implementation compiled successfully');
     return;
 }
 ```
 
 ### GitHub Actions Integration
 ```yaml
-- name: Test Node.js Multiclass Classifier
+- name: Test JavaScript Multiclass Classifier
   run: |
     cd tests/multiclass_classifier/nodejs
     npm install

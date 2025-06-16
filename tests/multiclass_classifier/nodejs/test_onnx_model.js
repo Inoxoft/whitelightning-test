@@ -35,7 +35,7 @@ class SystemInfo {
         this.processor = os.arch();
         this.cpuCores = os.cpus().length;
         this.totalMemoryGB = os.totalmem() / (1024 * 1024 * 1024);
-        this.runtime = 'Node.js Implementation';
+        this.runtime = 'JavaScript Implementation';
         this.nodeVersion = process.version;
         this.onnxVersion = ort.version || 'Unknown';
     }
@@ -394,8 +394,8 @@ async function runDefaultTests() {
 }
 
 async function main() {
-    console.log('🤖 ONNX MULTICLASS CLASSIFIER - NODE.JS IMPLEMENTATION');
-    console.log('====================================================');
+    console.log('🤖 ONNX MULTICLASS CLASSIFIER - JAVASCRIPT IMPLEMENTATION');
+    console.log('========================================================');
     
     // Check if we're in CI environment
     const ci = process.env.CI;
@@ -403,7 +403,7 @@ async function main() {
     if (ci || githubActions) {
         if (!checkModelFiles()) {
             console.log('⚠️ Some model files missing in CI - exiting safely');
-            console.log('✅ Node.js implementation compiled and started successfully');
+            console.log('✅ JavaScript implementation compiled and started successfully');
             console.log('🏗️ Build verification completed');
             return;
         }
@@ -412,7 +412,7 @@ async function main() {
     if (!checkModelFiles()) {
         console.log('⚠️ Model files not found - exiting safely');
         console.log('🔧 This is expected in CI environments without model files');
-        console.log('✅ Node.js implementation compiled successfully');
+        console.log('✅ JavaScript implementation compiled successfully');
         console.log('🏗️ Build verification completed');
         return;
     }

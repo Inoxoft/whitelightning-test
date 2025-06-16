@@ -1,6 +1,6 @@
-# ONNX Binary Classifier - Node.js Implementation
+# ONNX Binary Classifier - JavaScript Implementation
 
-A high-performance sentiment analysis classifier using ONNX Runtime for Node.js with comprehensive performance monitoring and system information display.
+A high-performance sentiment analysis classifier using ONNX Runtime for JavaScript (Node.js) with comprehensive performance monitoring and system information display.
 
 ## 🚀 Features
 
@@ -14,7 +14,7 @@ A high-performance sentiment analysis classifier using ONNX Runtime for Node.js 
 ## 📋 Requirements
 
 - Node.js 18.0.0 or higher
-- ONNX Runtime for Node.js 1.22.0
+- ONNX Runtime for JavaScript 1.19.2
 - Model files: `model.onnx`, `vocab.json`, `scaler.json`
 
 ## 🛠️ Installation
@@ -86,8 +86,8 @@ node test_onnx_model.js --benchmark 500
 
 ### Sample Output
 ```
-🤖 ONNX BINARY CLASSIFIER - NODE.JS IMPLEMENTATION
-=================================================
+🤖 ONNX BINARY CLASSIFIER - JAVASCRIPT IMPLEMENTATION
+====================================================
 
 🔄 Processing: This product is amazing!
 
@@ -96,7 +96,7 @@ node test_onnx_model.js --benchmark 500
    Processor: arm64
    CPU Cores: 8
    Total Memory: 16.0 GB
-   Runtime: Node.js Implementation
+   Runtime: JavaScript Implementation
    Node.js Version: v18.17.0
    ONNX Runtime Version: 1.22.0
 
@@ -150,14 +150,14 @@ The implementation includes CI-friendly features:
 // Graceful handling when model files are missing
 if (!checkModelFiles()) {
     console.log('⚠️ Model files not found - exiting safely');
-    console.log('✅ Node.js implementation compiled successfully');
+    console.log('✅ JavaScript implementation compiled successfully');
     return;
 }
 ```
 
 ### GitHub Actions Integration
 ```yaml
-- name: Test Node.js Binary Classifier
+- name: Test JavaScript Binary Classifier
   run: |
     cd tests/binary_classifier/nodejs
     npm install

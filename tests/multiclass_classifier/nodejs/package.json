@@ -1,7 +1,7 @@
 {
-  "name": "multiclass-classifier-nodejs",
+  "name": "multiclass-classifier-javascript",
   "version": "1.0.0",
-  "description": "ONNX Multiclass Classifier for News Category Classification - Node.js Implementation",
+  "description": "ONNX Multiclass Classifier for News Category Classification - JavaScript Implementation",
   "main": "test_onnx_model.js",
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "benchmark": "node test_onnx_model.js --benchmark 100"
   },
   "dependencies": {
-    "onnxruntime-node": "^1.22.0"
+    "onnxruntime-node": "1.19.2"
   },
   "devDependencies": {
     "jest": "^29.7.0"
@@ -23,7 +23,7 @@
     "machine-learning",
     "news-classification",
     "multiclass-classification",
-    "nodejs",
+    "javascript",
     "performance-monitoring"
   ]
 } 

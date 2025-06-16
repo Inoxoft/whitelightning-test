@@ -26,7 +26,7 @@ on:
           - java
           - cpp
           - c
-          - nodejs
+          - javascript
       custom_text:
         description: 'Input your text'
         required: false
@@ -399,10 +399,10 @@ jobs:
             tests/*/cpp/*.log
           if-no-files-found: warn
 
-  nodejs-tests:
-    name: Node.js Tests
+  javascript-tests:
+    name: JavaScript Tests
     runs-on: ubuntu-latest
-    if: ${{ inputs.language == 'nodejs' }}
+    if: ${{ inputs.language == 'javascript' }}
     
     steps:
       - uses: actions/checkout@v4
@@ -412,23 +412,28 @@ jobs:
         with:
           node-version: '18'
           
-      - name: Install Node.js dependencies
+      - name: Install JavaScript dependencies
+        env:
+          # Force CPU-only ONNX Runtime to avoid GPU installation issues
+          ONNXRUNTIME_PREFER_CPU: "1"
         run: |
           if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             cd tests/binary_classifier/nodejs
-            echo "📦 Installing binary classifier Node.js dependencies..."
-            npm install
+            echo "📦 Installing binary classifier JavaScript dependencies..."
+            echo "🔧 Using CPU-only ONNX Runtime for CI compatibility"
+            npm install --verbose
           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             cd tests/multiclass_classifier/nodejs
-            echo "📦 Installing multiclass classifier Node.js dependencies..."
-            npm install
+            echo "📦 Installing multiclass classifier JavaScript dependencies..."
+            echo "🔧 Using CPU-only ONNX Runtime for CI compatibility"
+            npm install --verbose
           fi
           
-      - name: Run Node.js Tests
+      - name: Run JavaScript Tests
         run: |
           if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             cd tests/binary_classifier/nodejs
-            echo "🚀 Running binary classifier Node.js tests..."
+            echo "🚀 Running binary classifier JavaScript tests..."
             
             # Check if model files exist
             if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
@@ -441,14 +446,14 @@ jobs:
               fi
             else
               echo "⚠️ Model files not found, running CI build verification..."
-              echo "✅ Node.js implementation compiled and started successfully"
+              echo "✅ JavaScript implementation compiled and started successfully"
               echo "🏗️ Build verification completed"
               npm test || echo "Expected exit for missing model files"
             fi
             
           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             cd tests/multiclass_classifier/nodejs
-            echo "🚀 Running multiclass classifier Node.js tests..."
+            echo "🚀 Running multiclass classifier JavaScript tests..."
             
             # Check if model files exist
             if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
@@ -461,7 +466,7 @@ jobs:
               fi
             else
               echo "⚠️ Model files not found, running CI build verification..."
-              echo "✅ Node.js implementation compiled and started successfully"
+              echo "✅ JavaScript implementation compiled and started successfully"
               echo "🏗️ Build verification completed"
               npm test || echo "Expected exit for missing model files"
             fi
@@ -478,7 +483,7 @@ jobs:
               npm run benchmark
             else
               echo "⚠️ Skipping benchmark - model files not available"
-              echo "✅ Node.js implementation build verification completed successfully"
+              echo "✅ JavaScript implementation build verification completed successfully"
             fi
             
           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
@@ -490,7 +495,7 @@ jobs:
               npm run benchmark
             else
               echo "⚠️ Skipping benchmark - model files not available"
-              echo "✅ Node.js implementation build verification completed successfully"
+              echo "✅ JavaScript implementation build verification completed successfully"
             fi
           fi
           
@@ -498,22 +503,22 @@ jobs:
         run: |
           if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             cd tests/binary_classifier/nodejs
-            echo "✅ Binary classifier Node.js build completed"
+            echo "✅ Binary classifier JavaScript build completed"
             ls -la node_modules/onnxruntime-node/
             echo "📁 Required files check:"
             ls -la model.onnx vocab.json scaler.json || echo "⚠️ Model files not found - using mock data"
           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             cd tests/multiclass_classifier/nodejs
-            echo "✅ Multiclass classifier Node.js build completed"
+            echo "✅ Multiclass classifier JavaScript build completed"
             ls -la node_modules/onnxruntime-node/
             echo "📁 Required files check:"
             ls -la model.onnx vocab.json scaler.json || echo "⚠️ Model files not found - using mock data"
           fi
           
-      - name: Upload Node.js test artifacts
+      - name: Upload JavaScript test artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nodejs-test-artifacts
+          name: javascript-test-artifacts
           path: |
             tests/binary_classifier/nodejs/node_modules/
             tests/multiclass_classifier/nodejs/node_modules/
