@@ -3,6 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+// Import ONNX Runtime for mobile/desktop platforms
+// Note: This import will be conditionally used based on platform
+import 'package:onnxruntime/onnxruntime.dart' as ort;
 
 Future<Float32List> preprocessText(String text) async {
   final vocabJson = await rootBundle.loadString('assets/models/vocab.json');
@@ -45,49 +48,97 @@ Future<Float32List> preprocessText(String text) async {
 }
 
 Future<double> classifyTextBinary(String text) async {
-  // For web platform, always use mock implementation
-  // For mobile/desktop, could use ONNX Runtime (but keeping consistent for now)
-  if (kIsWeb) {
-    print('Running on web platform - using mock classification');
-  } else {
-    print('Running on mobile/desktop platform - using mock classification for consistency');
+  try {
+    // Try to use real ONNX Runtime on mobile/desktop platforms
+    if (!kIsWeb) {
+      print('🧠 Attempting ONNX Runtime inference on mobile/desktop...');
+      
+      try {
+        // Initialize ONNX Runtime
+        ort.OrtEnv.instance.init();
+        
+        // Load the ONNX model
+        final modelBytes = await rootBundle.load('assets/models/model.onnx');
+        final sessionOptions = ort.OrtSessionOptions();
+        final session = ort.OrtSession.fromBuffer(modelBytes.buffer.asUint8List(), sessionOptions);
+        
+        // Preprocess the text to create input tensor
+        final processedVector = await preprocessText(text);
+        
+        // Create input tensor
+        final inputTensor = ort.OrtValueTensor.createTensorWithDataAsFloat32List(
+          [1, processedVector.length], // shape: [batch_size, features]
+          processedVector,
+        );
+        
+        // Run inference
+        final inputs = {'input': inputTensor};  // Adjust input name as needed
+        final outputs = session.run(ort.OrtRunOptions(), inputs);
+        
+        // Extract prediction (probability)
+        final outputTensor = outputs.values.first;
+        final result = outputTensor.value as List<double>;
+        final probability = result[0]; // Binary classification output
+        
+        // Cleanup
+        inputTensor.release();
+        outputTensor.release();
+        session.release();
+        sessionOptions.release();
+        
+        print('✅ ONNX Runtime inference successful: ${(probability * 100).toStringAsFixed(2)}%');
+        return probability.clamp(0.0, 1.0);
+        
+      } catch (onnxError) {
+        print('⚠️ ONNX Runtime failed: $onnxError');
+        print('📱 Falling back to enhanced keyword-based classification...');
+        // Fall through to mock implementation
+      }
+    } else {
+      print('🌐 Web platform detected - using keyword-based classification');
+    }
+    
+    // Fallback: Enhanced mock logic for binary classification
+    final words = text.toLowerCase().split(' ');
+    final positiveWords = [
+      'good', 'great', 'excellent', 'amazing', 'love', 'best', 'wonderful', 'fantastic',
+      'awesome', 'perfect', 'outstanding', 'brilliant', 'superb', 'magnificent', 'incredible',
+      'delightful', 'impressive', 'remarkable', 'exceptional', 'marvelous', 'splendid'
+    ];
+    final negativeWords = [
+      'bad', 'terrible', 'awful', 'hate', 'worst', 'horrible', 'disappointing',
+      'disgusting', 'pathetic', 'useless', 'dreadful', 'appalling', 'atrocious',
+      'abysmal', 'deplorable', 'detestable', 'repulsive', 'revolting', 'vile'
+    ];
+    
+    int positiveCount = 0;
+    int negativeCount = 0;
+    
+    for (final word in words) {
+      if (positiveWords.contains(word)) positiveCount++;
+      if (negativeWords.contains(word)) negativeCount++;
+    }
+    
+    // Calculate probability based on word counts
+    double baseProbability = 0.5;
+    
+    if (positiveCount > negativeCount) {
+      baseProbability = 0.7 + (positiveCount - negativeCount) * 0.1;
+    } else if (negativeCount > positiveCount) {
+      baseProbability = 0.3 - (negativeCount - positiveCount) * 0.1;
+    }
+    
+    // Add slight variation and clamp between 0.1 and 0.9
+    final variation = (DateTime.now().millisecondsSinceEpoch % 100) / 1000.0;
+    final finalProbability = (baseProbability + variation).clamp(0.1, 0.9);
+    
+    print('📊 Keyword-based classification result: ${(finalProbability * 100).toStringAsFixed(2)}%');
+    return finalProbability;
+    
+  } catch (e) {
+    print('❌ Classification error: $e');
+    return 0.5; // Return neutral probability on error
   }
-  
-  // Enhanced mock logic for binary classification
-  final words = text.toLowerCase().split(' ');
-  final positiveWords = [
-    'good', 'great', 'excellent', 'amazing', 'love', 'best', 'wonderful', 'fantastic',
-    'awesome', 'perfect', 'outstanding', 'brilliant', 'superb', 'magnificent', 'incredible',
-    'delightful', 'impressive', 'remarkable', 'exceptional', 'marvelous', 'splendid'
-  ];
-  final negativeWords = [
-    'bad', 'terrible', 'awful', 'hate', 'worst', 'horrible', 'disappointing',
-    'disgusting', 'pathetic', 'useless', 'dreadful', 'appalling', 'atrocious',
-    'abysmal', 'deplorable', 'detestable', 'repulsive', 'revolting', 'vile'
-  ];
-  
-  int positiveCount = 0;
-  int negativeCount = 0;
-  
-  for (final word in words) {
-    if (positiveWords.contains(word)) positiveCount++;
-    if (negativeWords.contains(word)) negativeCount++;
-  }
-  
-  // Calculate probability based on word counts with some randomness
-  final random = DateTime.now().millisecondsSinceEpoch % 100;
-  double baseProbability = 0.5;
-  
-  if (positiveCount > negativeCount) {
-    baseProbability = 0.7 + (positiveCount - negativeCount) * 0.1;
-  } else if (negativeCount > positiveCount) {
-    baseProbability = 0.3 - (negativeCount - positiveCount) * 0.1;
-  }
-  
-  // Add slight randomness and clamp between 0.1 and 0.9
-  final finalProbability = (baseProbability + (random / 1000.0)).clamp(0.1, 0.9);
-  
-  return finalProbability;
 }
 
 void main() {

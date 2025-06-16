@@ -3,6 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+// Import ONNX Runtime for mobile/desktop platforms
+// Note: This import will be conditionally used based on platform
+import 'package:onnxruntime/onnxruntime.dart' as ort;
 
 // News categories for multiclass classification
 const List<String> newsCategories = [
@@ -64,15 +67,78 @@ Future<Float32List> preprocessText(String text) async {
 }
 
 Future<Map<String, double>> classifyTextMulticlass(String text) async {
-  // For web platform, always use mock implementation
-  // For mobile/desktop, could use ONNX Runtime (but keeping consistent for now)
-  if (kIsWeb) {
-    print('Running on web platform - using mock classification');
-  } else {
-    print('Running on mobile/desktop platform - using mock classification for consistency');
+  try {
+    // Try to use real ONNX Runtime on mobile/desktop platforms
+    if (!kIsWeb) {
+      print('🧠 Attempting ONNX Runtime inference on mobile/desktop...');
+      
+      try {
+        // Initialize ONNX Runtime
+        ort.OrtEnv.instance.init();
+        
+        // Load the ONNX model
+        final modelBytes = await rootBundle.load('assets/models/model.onnx');
+        final sessionOptions = ort.OrtSessionOptions();
+        final session = ort.OrtSession.fromBuffer(modelBytes.buffer.asUint8List(), sessionOptions);
+        
+        // Preprocess the text to create input tensor
+        final processedVector = await preprocessText(text);
+        
+        // Create input tensor
+        final inputTensor = ort.OrtValueTensor.createTensorWithDataAsFloat32List(
+          [1, processedVector.length], // shape: [batch_size, features]
+          processedVector,
+        );
+        
+        // Run inference
+        final inputs = {'input': inputTensor};  // Adjust input name as needed
+        final outputs = session.run(ort.OrtRunOptions(), inputs);
+        
+        // Extract prediction probabilities
+        final outputTensor = outputs.values.first;
+        final rawProbabilities = outputTensor.value as List<double>;
+        
+        // Convert to category predictions
+        Map<String, double> predictions = {};
+        for (int i = 0; i < newsCategories.length && i < rawProbabilities.length; i++) {
+          predictions[newsCategories[i]] = rawProbabilities[i];
+        }
+        
+        // Cleanup
+        inputTensor.release();
+        outputTensor.release();
+        session.release();
+        sessionOptions.release();
+        
+        print('✅ ONNX Runtime inference successful');
+        print('🎯 Top prediction: ${predictions.entries.reduce((a, b) => a.value > b.value ? a : b).key}');
+        return predictions;
+        
+      } catch (onnxError) {
+        print('⚠️ ONNX Runtime failed: $onnxError');
+        print('📱 Falling back to enhanced keyword-based classification...');
+        // Fall through to mock implementation
+      }
+    } else {
+      print('🌐 Web platform detected - using keyword-based classification');
+    }
+    
+    // Fallback: Enhanced keyword-based classification
+    final predictions = _getMockPredictions(text);
+    final topCategory = predictions.entries.reduce((a, b) => a.value > b.value ? a : b);
+    print('📊 Keyword-based classification result: ${topCategory.key} (${(topCategory.value * 100).toStringAsFixed(1)}%)');
+    return predictions;
+    
+  } catch (e) {
+    print('❌ Classification error: $e');
+    // Return uniform distribution on error
+    Map<String, double> errorPredictions = {};
+    final uniformProb = 1.0 / newsCategories.length;
+    for (final category in newsCategories) {
+      errorPredictions[category] = uniformProb;
+    }
+    return errorPredictions;
   }
-  
-  return _getMockPredictions(text);
 }
 
 Map<String, double> _getMockPredictions(String text) {
