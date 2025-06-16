@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:isolate';
 import 'dart:math';
-import '../lib/mock_onnx.dart';
+import 'package:onnxruntime/onnxruntime.dart';
 
 class SystemInfo {
   final String platform;
@@ -247,10 +247,10 @@ class BinaryClassifier {
     classifier.scale = (scalerData['scale'] as List).map((e) => (e as num).toDouble()).toList();
 
     // Load ONNX model
-    OrtEnv.instance().init();
+    OrtEnv.instance.init();
     final sessionOptions = OrtSessionOptions();
     final modelBytes = await File(modelPath).readAsBytes();
-    classifier.session = OrtSession.fromBuffer(modelBytes, sessionOptions);
+    classifier.session = OrtSession.fromBuffer(modelBytes.buffer.asUint8List(), sessionOptions);
 
     return classifier;
   }
@@ -291,23 +291,27 @@ class BinaryClassifier {
     // Inference
     final inferenceStart = DateTime.now();
     final inputTensor = OrtValueTensor.createTensorWithDataList(
-      [1, inputData.length],
       inputData,
+      [1, inputData.length],
     );
     
+    final inputNames = session.inputNames;
+    final inputName = inputNames.isNotEmpty ? inputNames[0] : 'input';
+    
     final result = await session.runAsync(OrtRunOptions(), {
-      'input': inputTensor,
+      inputName: inputTensor,
     });
     final inferenceTime = DateTime.now().difference(inferenceStart).inMicroseconds / 1000.0;
     
     // Postprocessing
     final postprocessStart = DateTime.now();
     double probability = 0.0;
-    if (result.containsKey('output')) {
-      final outputTensor = result['output']!;
-      final probabilities = outputTensor.value;
+    final resultList = result?.toList();
+    if (resultList != null && resultList.isNotEmpty && resultList[0] != null) {
+      final outputTensor = resultList[0] as OrtValueTensor;
+      final probabilities = outputTensor.value as List<dynamic>;
       if (probabilities.isNotEmpty) {
-        probability = probabilities[0];
+        probability = (probabilities[0] as num).toDouble();
       }
     }
     
@@ -332,7 +336,7 @@ class BinaryClassifier {
 
   void dispose() {
     session.release();
-    OrtEnv.instance().release();
+    OrtEnv.instance.release();
   }
 }
 
