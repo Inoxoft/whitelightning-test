@@ -427,13 +427,44 @@ public class MulticlassClassifierTest {
         
         cpuMonitor.scheduleAtFixedRate(() -> {
             if (monitoring) {
-                OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-                double cpuUsage = osBean.getProcessCpuLoad() * 100.0;
+                // Use a simplified CPU monitoring approach that works across all JVMs
+                // This is less accurate but more portable
+                double cpuUsage = getCpuUsagePortable();
                 if (cpuUsage >= 0) {
                     cpuReadings.add(cpuUsage);
                 }
             }
         }, 0, 100, TimeUnit.MILLISECONDS);
+    }
+    
+    private static double getCpuUsagePortable() {
+        // Simplified CPU usage estimation using thread timing
+        // This is less accurate but works on all JVM implementations
+        try {
+            OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+            
+            // Try to use Sun-specific method if available (for better accuracy)
+            if (osBean instanceof com.sun.management.OperatingSystemMXBean) {
+                com.sun.management.OperatingSystemMXBean sunBean = 
+                    (com.sun.management.OperatingSystemMXBean) osBean;
+                return sunBean.getProcessCpuLoad() * 100.0;
+            }
+            
+            // Fallback: Use system load average as approximation
+            double loadAverage = osBean.getSystemLoadAverage();
+            if (loadAverage >= 0) {
+                // Convert load average to approximate CPU percentage
+                int processors = osBean.getAvailableProcessors();
+                return Math.min(100.0, (loadAverage / processors) * 100.0);
+            }
+            
+            // Final fallback: return 0 (no CPU monitoring)
+            return 0.0;
+            
+        } catch (Exception e) {
+            // If any error occurs, return 0 (no CPU monitoring)
+            return 0.0;
+        }
     }
     
     private static void stopCpuMonitoring(ResourceMetrics metrics) {
