@@ -1,7 +1,8 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::{Arg, Command};
 use colored::*;
 use ort::{Environment, ExecutionProvider, Session, SessionBuilder, Value};
+use ort::session::builder::GraphOptimizationLevel;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -88,7 +89,7 @@ impl CpuMonitor {
         }
         
         let avg = self.readings.iter().sum::<f64>() / self.readings.len() as f64;
-        let max = self.readings.iter().fold(0.0, |a, &b| a.max(b));
+        let max = self.readings.iter().fold(0.0f64, |a, &b| a.max(b));
         let count = self.readings.len();
         
         (avg, max, count)
@@ -200,13 +201,14 @@ fn preprocess_text(text: &str, tokenizer_data: &TokenizerData) -> Result<Vec<i32
     let words: Vec<&str> = text_lower.split_whitespace().collect();
     
     // Convert words to token IDs
-    for (i, word) in words.iter().take(30).enumerate() {
+    for (i, word) in words.iter().enumerate() {
+        if i >= 30 { break; }
+        
         if let Some(&token_id) = tokenizer_data.vocab.get(*word) {
             vector[i] = token_id;
-        } else if let Some(&oov_id) = tokenizer_data.vocab.get("<OOV>") {
-            vector[i] = oov_id;
         } else {
-            vector[i] = 1; // Default OOV token
+            // Use unknown token ID (typically 1)
+            vector[i] = 1;
         }
     }
     
@@ -214,11 +216,11 @@ fn preprocess_text(text: &str, tokenizer_data: &TokenizerData) -> Result<Vec<i32
 }
 
 async fn test_single_text(text: &str, session: &Session) -> Result<()> {
-    println!("{} {}", "🔄 Processing:".bright_blue().bold(), text);
+    println!("{}", "🔍 ANALYZING TEXT...".bright_blue().bold());
     
-    // Initialize system info
-    let system_info = SystemInfo::new();
-    system_info.print();
+    // Load preprocessing data
+    let tokenizer_data: TokenizerData = serde_json::from_str(&fs::read_to_string("vocab.json")?)?;
+    let label_mapping: LabelMapping = serde_json::from_str(&fs::read_to_string("scaler.json")?)?;
     
     // Initialize metrics
     let mut timing = TimingMetrics {
@@ -230,7 +232,7 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
     };
     
     let mut resources = ResourceMetrics {
-        memory_start_mb: 0.0,
+        memory_start_mb: get_memory_usage_mb(),
         memory_end_mb: 0.0,
         memory_delta_mb: 0.0,
         cpu_avg_percent: 0.0,
@@ -238,32 +240,27 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
         cpu_readings_count: 0,
     };
     
-    let total_start = Instant::now();
-    resources.memory_start_mb = get_memory_usage_mb();
-    
     // Start CPU monitoring
-    let mut cpu_monitor = CpuMonitor::new();
-    cpu_monitor.start_monitoring();
+    let cpu_monitor = Arc::new(std::sync::Mutex::new(CpuMonitor::new()));
+    let monitor_clone = cpu_monitor.clone();
     
-    // Spawn CPU monitoring task
-    let cpu_monitor = Arc::new(std::sync::Mutex::new(cpu_monitor));
-    let cpu_monitor_clone = cpu_monitor.clone();
+    if let Ok(mut monitor) = monitor_clone.lock() {
+        monitor.start_monitoring();
+    }
+    
     let cpu_task = tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_millis(50));
         loop {
-            interval.tick().await;
-            if let Ok(mut monitor) = cpu_monitor_clone.lock() {
-                if !monitor.monitoring {
-                    break;
-                }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            if let Ok(mut monitor) = monitor_clone.lock() {
                 monitor.take_reading();
             }
         }
     });
     
+    let total_start = Instant::now();
+    
     // Preprocessing
     let preprocess_start = Instant::now();
-    let tokenizer_data: TokenizerData = serde_json::from_str(&fs::read_to_string("vocab.json")?)?;
     let input_vector = preprocess_text(text, &tokenizer_data)?;
     timing.preprocessing_time_ms = preprocess_start.elapsed().as_secs_f64() * 1000.0;
     
@@ -273,26 +270,28 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
     let outputs = session.run(vec![input_tensor])?;
     timing.inference_time_ms = inference_start.elapsed().as_secs_f64() * 1000.0;
     
-    // Post-processing
+    // Postprocessing
     let postprocess_start = Instant::now();
     let output_tensor = outputs[0].try_extract::<f32>()?;
-    let output_data: Vec<f32> = output_tensor.view().iter().cloned().collect();
+    let predictions = output_tensor.view().iter().collect::<Vec<_>>();
     
-    // Load label mapping
-    let label_mapping: LabelMapping = serde_json::from_str(&fs::read_to_string("scaler.json")?)?;
+    // Find the class with highest probability
+    let (predicted_class_idx, confidence) = predictions
+        .iter()
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .unwrap();
     
-    // Find predicted class
-    let mut predicted_idx = 0;
-    let mut max_confidence = output_data[0];
-    for (i, &confidence) in output_data.iter().enumerate() {
-        if confidence > max_confidence {
-            max_confidence = confidence;
-            predicted_idx = i;
-        }
-    }
+    // Map class index to label
+    let predicted_label = match predicted_class_idx {
+        0 => "business",
+        1 => "entertainment", 
+        2 => "politics",
+        3 => "sport",
+        4 => "tech",
+        _ => "unknown",
+    };
     
-    let predicted_label = label_mapping.labels.get(&predicted_idx.to_string())
-        .unwrap_or(&"unknown".to_string()).clone();
     timing.postprocessing_time_ms = postprocess_start.elapsed().as_secs_f64() * 1000.0;
     
     // Final measurements
@@ -311,18 +310,10 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
     cpu_task.abort();
     
     // Display results
-    println!("{}", "📊 MULTICLASS CLASSIFICATION RESULTS:".bright_green().bold());
-    println!("   🏆 Predicted Category: {}", predicted_label.bright_white().bold());
-    println!("   📈 Confidence: {:.2}% ({:.4})", max_confidence * 100.0, max_confidence);
+    println!("{}", "📊 NEWS CLASSIFICATION RESULTS:".bright_green().bold());
+    println!("   🏆 Predicted Category: {}", predicted_label.to_uppercase().bright_white().bold());
+    println!("   📈 Confidence: {:.2}% ({:.4})", confidence * 100.0, confidence);
     println!("   📝 Input Text: \"{}\"", text.italic());
-    
-    // Show all class probabilities
-    println!("   📋 All Class Probabilities:");
-    for (i, &probability) in output_data.iter().enumerate() {
-        let class_name = label_mapping.labels.get(&i.to_string())
-            .unwrap_or(&"unknown".to_string());
-        println!("      {}: {:.4} ({:.1}%)", class_name, probability, probability * 100.0);
-    }
     println!();
     
     // Print performance summary
@@ -338,7 +329,7 @@ async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result
     let system_info = SystemInfo::new();
     println!("💻 System: {} cores, {:.1}GB RAM", system_info.cpu_cores, system_info.total_memory_gb);
     
-    let test_text = "France Defeats Argentina in Thrilling World Cup Final";
+    let test_text = "This is a sample news article for performance testing.";
     println!("📝 Test Text: '{}'\n", test_text);
     
     // Load data once
@@ -382,7 +373,7 @@ async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result
     // Calculate statistics
     let avg_time = times.iter().sum::<f64>() / times.len() as f64;
     let min_time = times.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-    let max_time = times.iter().fold(0.0, |a, &b| a.max(b));
+    let max_time = times.iter().fold(0.0f64, |a, &b| a.max(b));
     let avg_inf = inference_times.iter().sum::<f64>() / inference_times.len() as f64;
     
     // Display results
@@ -423,11 +414,11 @@ fn check_model_files() -> bool {
 
 async fn run_default_tests(session: &Session) -> Result<()> {
     let default_texts = vec![
-        "France Defeats Argentina in Thrilling World Cup Final",
-        "New Healthcare Policy Announced by Government",
-        "Stock Market Reaches Record High",
-        "Climate Change Summit Begins in Paris",
-        "Scientists Discover New Species in Amazon",
+        "Apple Inc. reported strong quarterly earnings today.",
+        "The latest Marvel movie breaks box office records.",
+        "Election results show a tight race between candidates.",
+        "The football team won the championship game.",
+        "New AI technology promises to revolutionize computing.",
     ];
     
     println!("{}", "🔄 Testing multiple texts...".bright_blue().bold());
@@ -487,7 +478,7 @@ async fn main() -> Result<()> {
         .into_arc();
     
     let session = SessionBuilder::new(&environment)?
-        .with_optimization_level(ort::GraphOptimizationLevel::All)?
+        .with_optimization_level(GraphOptimizationLevel::All)?
         .with_intra_threads(num_cpus::get())?
         .commit_from_file("model.onnx")?;
     

@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use clap::{Arg, Command};
 use colored::*;
 use ort::{Environment, ExecutionProvider, Session, SessionBuilder, Value};
+use ort::session::builder::GraphOptimizationLevel;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -88,7 +89,7 @@ impl CpuMonitor {
         }
         
         let avg = self.readings.iter().sum::<f64>() / self.readings.len() as f64;
-        let max = self.readings.iter().fold(0.0, |a, &b| a.max(b));
+        let max = self.readings.iter().fold(0.0f64, |a, &b| a.max(b));
         let count = self.readings.len();
         
         (avg, max, count)
@@ -198,23 +199,23 @@ fn preprocess_text(text: &str, tfidf_data: &TfidfData, scaler_data: &ScalerData)
     // Tokenize and count words
     let text_lower = text.to_lowercase();
     let words: Vec<&str> = text_lower.split_whitespace().collect();
-    let mut word_counts: HashMap<String, usize> = HashMap::new();
+    let mut word_counts = HashMap::new();
     
     for word in words {
-        *word_counts.entry(word.to_string()).or_insert(0) += 1;
+        *word_counts.entry(word).or_insert(0) += 1;
     }
     
     // Apply TF-IDF
     for (word, count) in word_counts {
-        if let Some(&idx) = tfidf_data.vocab.get(&word) {
-            if idx < 5000 {
-                vector[idx] = *count as f32 * tfidf_data.idf[idx];
+        if let Some(&idx) = tfidf_data.vocab.get(word) {
+            if idx < vector.len() {
+                vector[idx] = count as f32 * tfidf_data.idf[idx];
             }
         }
     }
     
     // Apply scaling
-    for i in 0..5000 {
+    for i in 0..vector.len() {
         vector[i] = (vector[i] - scaler_data.mean[i]) / scaler_data.scale[i];
     }
     
@@ -222,7 +223,7 @@ fn preprocess_text(text: &str, tfidf_data: &TfidfData, scaler_data: &ScalerData)
 }
 
 async fn test_single_text(text: &str, session: &Session) -> Result<()> {
-    println!("{} {}", "🔄 Processing:".bright_blue().bold(), text);
+    println!("{}", "🔄 Processing:".bright_blue().bold(), text);
     
     // Initialize system info
     let system_info = SystemInfo::new();
@@ -369,7 +370,7 @@ async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result
     // Calculate statistics
     let avg_time = times.iter().sum::<f64>() / times.len() as f64;
     let min_time = times.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-    let max_time = times.iter().fold(0.0, |a, &b| a.max(b));
+    let max_time = times.iter().fold(0.0f64, |a, &b| a.max(b));
     let avg_inf = inference_times.iter().sum::<f64>() / inference_times.len() as f64;
     
     // Display results
@@ -474,7 +475,7 @@ async fn main() -> Result<()> {
         .into_arc();
     
     let session = SessionBuilder::new(&environment)?
-        .with_optimization_level(ort::GraphOptimizationLevel::All)?
+        .with_optimization_level(GraphOptimizationLevel::All)?
         .with_intra_threads(num_cpus::get())?
         .commit_from_file("model.onnx")?;
     
