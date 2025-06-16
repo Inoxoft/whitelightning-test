@@ -12,7 +12,7 @@ name = "test_onnx_model"
 path = "src/main.rs"
 
 [dependencies]
-ort = "2.0.0-rc.4"
+ort = "1.16.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.0", features = ["full"] }
@@ -23,6 +23,8 @@ sysinfo = "0.29"
 chrono = { version = "0.4", features = ["serde"] }
 indicatif = "0.17"
 num_cpus = "1.0"
+thiserror = "1.0"
+ndarray = "0.15"
 
 [profile.release]
 opt-level = 3

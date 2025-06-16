@@ -1,0 +1,7 @@
+[ort] strategy: "unknown"
+cargo:rerun-if-env-changed=ORT_STRATEGY
+cargo:rerun-if-changed=/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/rust/target/debug/build/ort-f21dc3e9e69e484e/out/onnxruntime-osx-x86_64-1.16.0.tgz
+cargo:rustc-link-lib=onnxruntime
+cargo:rustc-link-search=native=/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/rust/target/debug/build/ort-f21dc3e9e69e484e/out/onnxruntime/onnxruntime-osx-x86_64-1.16.0/lib
+cargo:rerun-if-env-changed=ORT_LIB_LOCATION
+cargo:rerun-if-env-changed=ORT_STRATEGY
