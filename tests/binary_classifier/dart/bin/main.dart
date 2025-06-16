@@ -256,7 +256,7 @@ class BinaryClassifier {
   }
 
   List<double> preprocessText(String text) {
-    final vector = List<double>.filled(5000, 0.0);
+    final vector = List<double>.filled(mean.length, 0.0);
     final wordCounts = <String, int>{};
 
     final textLower = text.toLowerCase();
@@ -268,12 +268,12 @@ class BinaryClassifier {
       final word = entry.key;
       final count = entry.value;
       final idx = vocab[word];
-      if (idx != null && idx is int && idx < 5000) {
+      if (idx != null && idx is int && idx < vector.length && idx < idf.length) {
         vector[idx] = count * idf[idx];
       }
     }
 
-    for (int i = 0; i < 5000; i++) {
+    for (int i = 0; i < vector.length && i < mean.length && i < scale.length; i++) {
       vector[i] = (vector[i] - mean[i]) / scale[i];
     }
 
@@ -291,7 +291,7 @@ class BinaryClassifier {
     // Inference
     final inferenceStart = DateTime.now();
     final inputTensor = OrtValueTensor.createTensorWithDataList(
-      [1, 5000],
+      [1, inputData.length],
       inputData,
     );
     
