@@ -1,0 +1,40 @@
+name: multiclass_classifier_dart
+description: ONNX Multiclass Classifier implementation in Dart with comprehensive system monitoring
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  # ONNX Runtime for model inference (optional - falls back to mock if unavailable)
+  # onnxruntime: ^1.16.0
+  
+  # JSON handling
+  json_annotation: ^4.8.1
+  
+  # System information and monitoring
+  platform: ^3.1.3
+  io: ^1.0.4
+  
+  # File operations
+  path: ^1.8.3
+  
+  # Async utilities
+  async: ^2.11.0
+  
+  # Math operations
+  collection: ^1.17.2
+
+dev_dependencies:
+  # Testing
+  test: ^1.24.0
+  
+  # Linting
+  lints: ^3.0.0
+  
+  # JSON code generation
+  json_serializable: ^6.7.1
+  build_runner: ^2.4.7
+
+executables:
+  test_onnx_model: main 
