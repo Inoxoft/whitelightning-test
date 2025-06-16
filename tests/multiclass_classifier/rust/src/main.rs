@@ -1,8 +1,12 @@
 use anyhow::Result;
 use clap::{Arg, Command};
 use colored::*;
-use ort::{Environment, ExecutionProvider, Session, SessionBuilder, Value};
-use ort::session::builder::GraphOptimizationLevel;
+use ort::{
+    environment::Environment,
+    execution_providers::ExecutionProvider,
+    session::{Session, builder::{SessionBuilder, GraphOptimizationLevel}},
+    value::Value,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -478,7 +482,7 @@ async fn main() -> Result<()> {
         .into_arc();
     
     let session = SessionBuilder::new(&environment)?
-        .with_optimization_level(GraphOptimizationLevel::All)?
+        .with_optimization_level(GraphOptimizationLevel::Level1)?
         .with_intra_threads(num_cpus::get())?
         .commit_from_file("model.onnx")?;
     
