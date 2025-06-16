@@ -20,33 +20,42 @@ class OrtSession {
   OrtSession._();
   
   List<OrtValue> run(List<OrtValue> inputs) {
-    // Simulate inference with random results
-    final random = Random();
-    final output = Float32List(2); // Binary classification output
-    
-    // Simulate realistic binary classification probabilities
-    final prob1 = random.nextDouble();
-    output[0] = prob1.toDouble();
-    output[1] = (1.0 - prob1).toDouble();
-    
-    return [OrtValue.createTensorWithDataAsFloat32List([1, 2], output)];
+    // Simulate inference with realistic binary classification results
+    final output = _generateRealisticBinaryPrediction(inputs);
+    return [OrtValue.createTensorWithDataAsFloat32List([1, 1], Float32List.fromList([output]))];
   }
   
   Future<Map<String, OrtValue>> runAsync(OrtRunOptions options, Map<String, OrtValue> inputs) async {
     // Simulate async inference
     await Future.delayed(Duration(milliseconds: 10));
     
-    final random = Random();
-    final output = Float32List(2); // Binary classification output
-    
-    // Simulate realistic binary classification probabilities
-    final prob1 = random.nextDouble();
-    output[0] = prob1.toDouble();
-    output[1] = (1.0 - prob1).toDouble();
+    final output = _generateRealisticBinaryPrediction(inputs.values.toList());
     
     return {
-      'output': OrtValue.createTensorWithDataAsFloat32List([1, 2], output)
+      'output': OrtValue.createTensorWithDataAsFloat32List([1, 1], Float32List.fromList([output]))
     };
+  }
+  
+  double _generateRealisticBinaryPrediction(List<OrtValue> inputs) {
+    final random = Random();
+    
+    // For demo purposes, create a somewhat realistic binary classification
+    // In a real scenario, this would be actual model inference
+    
+    // Create a bias towards certain probability ranges to make it more realistic
+    // Most real predictions tend to be more confident (closer to 0 or 1)
+    final baseProb = random.nextDouble();
+    
+    if (baseProb < 0.3) {
+      // Negative prediction (0.0 - 0.4)
+      return random.nextDouble() * 0.4;
+    } else if (baseProb > 0.7) {
+      // Positive prediction (0.6 - 1.0)
+      return 0.6 + random.nextDouble() * 0.4;
+    } else {
+      // Uncertain prediction (0.4 - 0.6)
+      return 0.4 + random.nextDouble() * 0.2;
+    }
   }
   
   void release() {

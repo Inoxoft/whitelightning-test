@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   
   # ONNX Runtime for model inference
-  onnxruntime: ^1.16.0
+  onnxruntime: ^1.4.1
   
   # UI components
   cupertino_icons: ^1.0.2

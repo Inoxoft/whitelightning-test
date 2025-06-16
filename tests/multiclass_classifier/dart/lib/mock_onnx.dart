@@ -20,47 +20,51 @@ class OrtSession {
   OrtSession._();
   
   List<OrtValue> run(List<OrtValue> inputs) {
-    // Simulate inference with random results
-    final random = Random();
-    final output = Float32List(4); // Multiclass classification output (4 classes)
-    
-    // Simulate realistic multiclass classification probabilities
-    double sum = 0.0;
-    for (int i = 0; i < 4; i++) {
-      output[i] = random.nextDouble();
-      sum += output[i];
-    }
-    
-    // Normalize to sum to 1.0
-    for (int i = 0; i < 4; i++) {
-      output[i] = output[i] / sum;
-    }
-    
-    return [OrtValue.createTensorWithDataAsFloat32List([1, 4], output)];
+    // Simulate inference with realistic multiclass results
+    final output = _generateRealisticPrediction(inputs);
+    return [OrtValue.createTensorWithDataAsFloat32List([1, 10], output)];
   }
   
   Future<Map<String, OrtValue>> runAsync(OrtRunOptions options, Map<String, OrtValue> inputs) async {
     // Simulate async inference
     await Future.delayed(Duration(milliseconds: 10));
     
-    final random = Random();
-    final output = Float32List(4); // Multiclass classification output (4 classes)
+    final output = _generateRealisticPrediction(inputs.values.toList());
     
-    // Simulate realistic multiclass classification probabilities
-    double sum = 0.0;
-    for (int i = 0; i < 4; i++) {
-      output[i] = random.nextDouble();
-      sum += output[i];
+    return {
+      'output': OrtValue.createTensorWithDataAsFloat32List([1, 10], output)
+    };
+  }
+  
+  Float32List _generateRealisticPrediction(List<OrtValue> inputs) {
+    final random = Random();
+    final output = Float32List(10); // 10 classes for multiclass classifier
+    
+    // Classes: Business, Education, Entertainment, Environment, Health, Politics, Science, Sports, Technology, World
+    // Try to make somewhat realistic predictions based on simple heuristics
+    
+    // For demo purposes, create a biased but more realistic distribution
+    // In a real scenario, this would be actual model inference
+    
+    // Create a somewhat realistic distribution (not completely random)
+    final baseProbs = [0.1, 0.05, 0.15, 0.1, 0.05, 0.2, 0.1, 0.1, 0.1, 0.05]; // Slightly favor Politics and Entertainment
+    
+    for (int i = 0; i < 10; i++) {
+      // Add some randomness to base probabilities
+      output[i] = baseProbs[i] + (random.nextDouble() - 0.5) * 0.3;
+      if (output[i] < 0) output[i] = 0.01; // Ensure positive
     }
     
     // Normalize to sum to 1.0
-    for (int i = 0; i < 4; i++) {
+    double sum = 0.0;
+    for (int i = 0; i < 10; i++) {
+      sum += output[i];
+    }
+    for (int i = 0; i < 10; i++) {
       output[i] = output[i] / sum;
     }
     
-    return {
-      'output': OrtValue.createTensorWithDataAsFloat32List([1, 4], output)
-    };
+    return output;
   }
   
   void release() {
