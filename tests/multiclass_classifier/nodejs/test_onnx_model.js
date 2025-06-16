@@ -45,6 +45,7 @@ class SystemInfo {
 let cpuReadings = [];
 let cpuMonitorInterval = null;
 let monitoring = false;
+let lastCpuUsage = null;
 
 // Utility functions
 function getTimeMs() {
@@ -57,29 +58,69 @@ function getMemoryUsageMB() {
 }
 
 function getCpuUsagePercent() {
-    // Simplified CPU usage estimation for Node.js
-    // This is an approximation based on process CPU time
-    const cpuUsage = process.cpuUsage();
-    const totalTime = cpuUsage.user + cpuUsage.system;
+    const currentUsage = process.cpuUsage();
+    const currentTime = process.hrtime.bigint();
     
-    // Convert microseconds to percentage (very rough approximation)
-    // This is not as accurate as native implementations but provides some indication
-    return Math.min(100, (totalTime / 1000000) % 100);
+    if (lastCpuUsage) {
+        // Calculate the difference in CPU usage
+        const userDiff = currentUsage.user - lastCpuUsage.usage.user;
+        const systemDiff = currentUsage.system - lastCpuUsage.usage.system;
+        const timeDiff = Number(currentTime - lastCpuUsage.time) / 1000000; // Convert to milliseconds
+        
+        if (timeDiff > 0) {
+            // Calculate CPU percentage (user + system time / elapsed time)
+            const totalCpuTime = (userDiff + systemDiff) / 1000; // Convert microseconds to milliseconds
+            const cpuPercent = (totalCpuTime / timeDiff) * 100;
+            
+            // Update last usage
+            lastCpuUsage = { usage: currentUsage, time: currentTime };
+            
+            return Math.min(100, Math.max(0, cpuPercent));
+        }
+    }
+    
+    // Initialize or update last usage
+    lastCpuUsage = { usage: currentUsage, time: currentTime };
+    return 0;
 }
 
 function startCpuMonitoring() {
     monitoring = true;
     cpuReadings = [];
+    lastCpuUsage = null; // Reset CPU usage tracking
+    
+    // Initialize first reading
+    getCpuUsagePercent();
     
     cpuMonitorInterval = setInterval(() => {
         if (monitoring) {
-            const cpuUsage = getCpuUsagePercent();
+            let cpuUsage = getCpuUsagePercent();
+            
+            // If process CPU usage is 0, try system load average as fallback
+            if (cpuUsage === 0) {
+                const loadAvg = os.loadavg();
+                const numCpus = os.cpus().length;
+                // Convert load average to approximate CPU percentage
+                cpuUsage = Math.min(100, (loadAvg[0] / numCpus) * 100);
+            }
+            
             cpuReadings.push(cpuUsage);
         }
-    }, 100);
+    }, 50); // Increased frequency for better accuracy
 }
 
 function stopCpuMonitoring(resources) {
+    // Take one final reading before stopping
+    if (monitoring) {
+        let finalCpuUsage = getCpuUsagePercent();
+        if (finalCpuUsage === 0) {
+            const loadAvg = os.loadavg();
+            const numCpus = os.cpus().length;
+            finalCpuUsage = Math.min(100, (loadAvg[0] / numCpus) * 100);
+        }
+        cpuReadings.push(finalCpuUsage);
+    }
+    
     monitoring = false;
     if (cpuMonitorInterval) {
         clearInterval(cpuMonitorInterval);
@@ -90,8 +131,15 @@ function stopCpuMonitoring(resources) {
     resources.cpuReadingsCount = cpuReadings.length;
     
     if (cpuReadings.length > 0) {
-        resources.cpuAvgPercent = cpuReadings.reduce((a, b) => a + b, 0) / cpuReadings.length;
-        resources.cpuMaxPercent = Math.max(...cpuReadings);
+        // Filter out zero readings for better accuracy
+        const validReadings = cpuReadings.filter(reading => reading > 0);
+        if (validReadings.length > 0) {
+            resources.cpuAvgPercent = validReadings.reduce((a, b) => a + b, 0) / validReadings.length;
+            resources.cpuMaxPercent = Math.max(...validReadings);
+        } else {
+            resources.cpuAvgPercent = cpuReadings.reduce((a, b) => a + b, 0) / cpuReadings.length;
+            resources.cpuMaxPercent = Math.max(...cpuReadings);
+        }
     }
 }
 
@@ -125,6 +173,11 @@ function printPerformanceSummary(timing, resources) {
     console.log(`   Memory Delta: ${resources.memoryDeltaMB >= 0 ? '+' : ''}${resources.memoryDeltaMB.toFixed(2)} MB`);
     if (resources.cpuReadingsCount > 0) {
         console.log(`   CPU Usage: ${resources.cpuAvgPercent.toFixed(1)}% avg, ${resources.cpuMaxPercent.toFixed(1)}% peak (${resources.cpuReadingsCount} samples)`);
+        if (resources.cpuAvgPercent < 1) {
+            console.log(`   📝 Note: Low CPU readings normal for fast operations in JavaScript`);
+        }
+    } else {
+        console.log(`   CPU Usage: Not available (monitoring disabled)`);
     }
     console.log();
     
