@@ -1,7 +1,7 @@
 {
-  "name": "binary-classifier-nodejs",
+  "name": "multiclass-classifier-nodejs",
   "version": "1.0.0",
-  "description": "ONNX Binary Classifier for Sentiment Analysis - Node.js Implementation",
+  "description": "ONNX Multiclass Classifier for News Category Classification - Node.js Implementation",
   "main": "test_onnx_model.js",
   "type": "module",
   "scripts": {
@@ -21,8 +21,8 @@
   "keywords": [
     "onnx",
     "machine-learning",
-    "sentiment-analysis",
-    "binary-classification",
+    "news-classification",
+    "multiclass-classification",
     "nodejs",
     "performance-monitoring"
   ]
