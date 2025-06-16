@@ -1,5 +1,5 @@
-name: binary_classifier_flutter
-description: Flutter Binary Classifier with ONNX Runtime
+name: multiclass_classifier_flutter
+description: Flutter Multiclass News Classifier with ONNX Runtime
 version: 1.0.0+1
 
 environment:
