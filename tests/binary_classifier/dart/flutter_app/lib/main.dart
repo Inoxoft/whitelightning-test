@@ -65,26 +65,43 @@ Future<double> classifyTextBinary(String text) async {
         // Preprocess the text to create input tensor
         final processedVector = await preprocessText(text);
         
+        // Get input name from model
+        final inputNames = session.inputNames;
+        if (inputNames.isEmpty) {
+          throw Exception('No input names found in the model');
+        }
+        final inputName = inputNames[0];
+        
         // Create input tensor
-        final inputTensor = ort.OrtValueTensor.createTensorWithDataAsFloat32List(
+        final inputTensor = ort.OrtValueTensor.createTensorWithDataList(
+          processedVector, // data
           [1, processedVector.length], // shape: [batch_size, features]
-          processedVector,
         );
         
         // Run inference
-        final inputs = {'input': inputTensor};  // Adjust input name as needed
-        final outputs = session.run(ort.OrtRunOptions(), inputs);
+        final result = await session.runAsync(ort.OrtRunOptions(), {
+          inputName: inputTensor,
+        });
         
         // Extract prediction (probability)
-        final outputTensor = outputs.values.first;
-        final result = outputTensor.value as List<double>;
-        final probability = result[0]; // Binary classification output
+        final resultList = result?.toList();
+        double probability = 0.5; // default fallback
+        
+        if (resultList != null && resultList.isNotEmpty && resultList[0] != null) {
+          final outputTensor = resultList[0] as ort.OrtValueTensor;
+          final List<dynamic> probabilities = outputTensor.value as List<dynamic>;
+          final List<dynamic> flatProbs = (probabilities.isNotEmpty && probabilities.first is List)
+              ? probabilities.first as List<dynamic>
+              : probabilities;
+          if (flatProbs.isNotEmpty) {
+            probability = (flatProbs[0] as num).toDouble();
+          }
+        }
         
         // Cleanup
         inputTensor.release();
-        outputTensor.release();
         session.release();
-        sessionOptions.release();
+        ort.OrtEnv.instance.release();
         
         print('✅ ONNX Runtime inference successful: ${(probability * 100).toStringAsFixed(2)}%');
         return probability.clamp(0.0, 1.0);

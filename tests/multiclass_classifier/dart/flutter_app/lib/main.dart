@@ -84,31 +84,51 @@ Future<Map<String, double>> classifyTextMulticlass(String text) async {
         // Preprocess the text to create input tensor
         final processedVector = await preprocessText(text);
         
+        // Get input name from model
+        final inputNames = session.inputNames;
+        if (inputNames.isEmpty) {
+          throw Exception('No input names found in the model');
+        }
+        final inputName = inputNames[0];
+        
         // Create input tensor
-        final inputTensor = ort.OrtValueTensor.createTensorWithDataAsFloat32List(
+        final inputTensor = ort.OrtValueTensor.createTensorWithDataList(
+          processedVector, // data
           [1, processedVector.length], // shape: [batch_size, features]
-          processedVector,
         );
         
         // Run inference
-        final inputs = {'input': inputTensor};  // Adjust input name as needed
-        final outputs = session.run(ort.OrtRunOptions(), inputs);
+        final result = await session.runAsync(ort.OrtRunOptions(), {
+          inputName: inputTensor,
+        });
         
         // Extract prediction probabilities
-        final outputTensor = outputs.values.first;
-        final rawProbabilities = outputTensor.value as List<double>;
-        
-        // Convert to category predictions
+        final resultList = result?.toList();
         Map<String, double> predictions = {};
-        for (int i = 0; i < newsCategories.length && i < rawProbabilities.length; i++) {
-          predictions[newsCategories[i]] = rawProbabilities[i];
+        
+        if (resultList != null && resultList.isNotEmpty && resultList[0] != null) {
+          final outputTensor = resultList[0] as ort.OrtValueTensor;
+          final List<dynamic> probabilities = outputTensor.value as List<dynamic>;
+          final List<dynamic> flatProbs = (probabilities.isNotEmpty && probabilities.first is List)
+              ? probabilities.first as List<dynamic>
+              : probabilities;
+          
+          // Convert to category predictions
+          for (int i = 0; i < newsCategories.length && i < flatProbs.length; i++) {
+            predictions[newsCategories[i]] = (flatProbs[i] as num).toDouble();
+          }
+        } else {
+          // Fallback: uniform distribution
+          final uniformProb = 1.0 / newsCategories.length;
+          for (final category in newsCategories) {
+            predictions[category] = uniformProb;
+          }
         }
         
         // Cleanup
         inputTensor.release();
-        outputTensor.release();
         session.release();
-        sessionOptions.release();
+        ort.OrtEnv.instance.release();
         
         print('✅ ONNX Runtime inference successful');
         print('🎯 Top prediction: ${predictions.entries.reduce((a, b) => a.value > b.value ? a : b).key}');

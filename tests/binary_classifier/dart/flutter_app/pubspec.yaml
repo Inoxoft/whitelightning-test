@@ -15,7 +15,7 @@ dependencies:
   
   # ONNX Runtime for machine learning inference
   # Note: Only works on mobile/desktop, web uses fallback
-  onnxruntime: ^1.19.2
+  onnxruntime: ^1.4.1
 
 dev_dependencies:
   flutter_test:
