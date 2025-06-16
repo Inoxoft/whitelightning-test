@@ -219,7 +219,7 @@ fn preprocess_text(text: &str, tokenizer_data: &TokenizerData) -> Result<Vec<i32
     Ok(vector)
 }
 
-async fn test_single_text(text: &str, session: &Session) -> Result<()> {
+async fn test_single_text(text: &str, session: &mut Session) -> Result<()> {
     println!("{}", "🔍 ANALYZING TEXT...".bright_blue().bold());
     
     // Load preprocessing data
@@ -270,13 +270,13 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
     
     // Model inference
     let inference_start = Instant::now();
-    let input_tensor = Value::from_array(session.allocator(), &[input_vector])?;
-    let outputs = session.run(vec![input_tensor])?;
+    let input_tensor = Value::from_array(([1, 30], input_vector))?;
+    let outputs = session.run([input_tensor])?;
     timing.inference_time_ms = inference_start.elapsed().as_secs_f64() * 1000.0;
     
     // Postprocessing
     let postprocess_start = Instant::now();
-    let output_tensor = outputs[0].try_extract::<f32>()?;
+    let output_tensor = outputs[0].extract_tensor::<f32>()?;
     let predictions = output_tensor.view().iter().collect::<Vec<_>>();
     
     // Find the class with highest probability
@@ -326,7 +326,7 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
     Ok(())
 }
 
-async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result<()> {
+async fn run_performance_benchmark(num_runs: usize, session: &mut Session) -> Result<()> {
     println!("\n{} ({} runs)", "🚀 PERFORMANCE BENCHMARKING".bright_cyan().bold(), num_runs);
     println!("{}", "============================================================".bright_black());
     
@@ -343,8 +343,8 @@ async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result
     // Warmup runs
     println!("{}", "🔥 Warming up model (5 runs)...".yellow());
     for _ in 0..5 {
-        let input_tensor = Value::from_array(session.allocator(), &[input_vector.clone()])?;
-        let _ = session.run(vec![input_tensor])?;
+        let input_tensor = Value::from_array(([1, 30], input_vector.clone()))?;
+        let _ = session.run([input_tensor])?;
     }
     
     // Performance arrays
@@ -362,8 +362,8 @@ async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result
         let start_time = Instant::now();
         let inference_start = Instant::now();
         
-        let input_tensor = Value::from_array(session.allocator(), &[input_vector.clone()])?;
-        let _ = session.run(vec![input_tensor])?;
+        let input_tensor = Value::from_array(([1, 30], input_vector.clone()))?;
+        let _ = session.run([input_tensor])?;
         
         let inference_time = inference_start.elapsed().as_secs_f64() * 1000.0;
         let end_time = start_time.elapsed().as_secs_f64() * 1000.0;
@@ -416,7 +416,7 @@ fn check_model_files() -> bool {
     Path::new("scaler.json").exists()
 }
 
-async fn run_default_tests(session: &Session) -> Result<()> {
+async fn run_default_tests(session: &mut Session) -> Result<()> {
     let default_texts = vec![
         "Apple Inc. reported strong quarterly earnings today.",
         "The latest Marvel movie breaks box office records.",
@@ -475,24 +475,18 @@ async fn main() -> Result<()> {
     }
     
     // Initialize ONNX Runtime
-    let environment = Environment::builder()
-        .with_name("multiclass_classifier")
-        .with_execution_providers([ExecutionProvider::cpu()])
-        .build()?
-        .into_arc();
-    
-    let session = SessionBuilder::new(&environment)?
+    let mut session = SessionBuilder::new()?
         .with_optimization_level(GraphOptimizationLevel::Level1)?
         .with_intra_threads(num_cpus::get())?
         .commit_from_file("model.onnx")?;
     
     if let Some(benchmark_runs) = matches.get_one::<String>("benchmark") {
         let num_runs = benchmark_runs.parse().unwrap_or(100);
-        run_performance_benchmark(num_runs, &session).await?;
+        run_performance_benchmark(num_runs, &mut session).await?;
     } else if let Some(text) = matches.get_one::<String>("text") {
-        test_single_text(text, &session).await?;
+        test_single_text(text, &mut session).await?;
     } else {
-        run_default_tests(&session).await?;
+        run_default_tests(&mut session).await?;
     }
     
     Ok(())

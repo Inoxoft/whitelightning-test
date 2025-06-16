@@ -226,8 +226,8 @@ fn preprocess_text(text: &str, tfidf_data: &TfidfData, scaler_data: &ScalerData)
     Ok(vector)
 }
 
-async fn test_single_text(text: &str, session: &Session) -> Result<()> {
-    println!("{}", "🔄 Processing:".bright_blue().bold(), text);
+async fn test_single_text(text: &str, session: &mut Session) -> Result<()> {
+    println!("{}", "🔍 ANALYZING TEXT...".bright_blue().bold());
     
     // Initialize system info
     let system_info = SystemInfo::new();
@@ -255,20 +255,17 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
     resources.memory_start_mb = get_memory_usage_mb();
     
     // Start CPU monitoring
-    let mut cpu_monitor = CpuMonitor::new();
-    cpu_monitor.start_monitoring();
+    let cpu_monitor = Arc::new(std::sync::Mutex::new(CpuMonitor::new()));
+    let monitor_clone = cpu_monitor.clone();
     
-    // Spawn CPU monitoring task
-    let cpu_monitor = Arc::new(std::sync::Mutex::new(cpu_monitor));
-    let cpu_monitor_clone = cpu_monitor.clone();
+    if let Ok(mut monitor) = monitor_clone.lock() {
+        monitor.start_monitoring();
+    }
+    
     let cpu_task = tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_millis(50));
         loop {
-            interval.tick().await;
-            if let Ok(mut monitor) = cpu_monitor_clone.lock() {
-                if !monitor.monitoring {
-                    break;
-                }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            if let Ok(mut monitor) = monitor_clone.lock() {
                 monitor.take_reading();
             }
         }
@@ -283,13 +280,13 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
     
     // Model inference
     let inference_start = Instant::now();
-    let input_tensor = Value::from_array(session.allocator(), &[input_vector])?;
-    let outputs = session.run(vec![input_tensor])?;
+    let input_tensor = Value::from_array(([1, 5000], input_vector))?;
+    let outputs = session.run([input_tensor])?;
     timing.inference_time_ms = inference_start.elapsed().as_secs_f64() * 1000.0;
     
     // Post-processing
     let postprocess_start = Instant::now();
-    let output_tensor = outputs[0].try_extract::<f32>()?;
+    let output_tensor = outputs[0].extract_tensor::<f32>()?;
     let prediction = output_tensor.view().iter().next().unwrap();
     let sentiment = if *prediction > 0.5 { "Positive" } else { "Negative" };
     timing.postprocessing_time_ms = postprocess_start.elapsed().as_secs_f64() * 1000.0;
@@ -322,7 +319,7 @@ async fn test_single_text(text: &str, session: &Session) -> Result<()> {
     Ok(())
 }
 
-async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result<()> {
+async fn run_performance_benchmark(num_runs: usize, session: &mut Session) -> Result<()> {
     println!("\n{} ({} runs)", "🚀 PERFORMANCE BENCHMARKING".bright_cyan().bold(), num_runs);
     println!("{}", "============================================================".bright_black());
     
@@ -340,8 +337,8 @@ async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result
     // Warmup runs
     println!("{}", "🔥 Warming up model (5 runs)...".yellow());
     for _ in 0..5 {
-        let input_tensor = Value::from_array(session.allocator(), &[input_vector.clone()])?;
-        let _ = session.run(vec![input_tensor])?;
+        let input_tensor = Value::from_array(([1, 5000], input_vector.clone()))?;
+        let _ = session.run([input_tensor])?;
     }
     
     // Performance arrays
@@ -359,8 +356,8 @@ async fn run_performance_benchmark(num_runs: usize, session: &Session) -> Result
         let start_time = Instant::now();
         let inference_start = Instant::now();
         
-        let input_tensor = Value::from_array(session.allocator(), &[input_vector.clone()])?;
-        let _ = session.run(vec![input_tensor])?;
+        let input_tensor = Value::from_array(([1, 5000], input_vector.clone()))?;
+        let _ = session.run([input_tensor])?;
         
         let inference_time = inference_start.elapsed().as_secs_f64() * 1000.0;
         let end_time = start_time.elapsed().as_secs_f64() * 1000.0;
@@ -413,7 +410,7 @@ fn check_model_files() -> bool {
     Path::new("scaler.json").exists()
 }
 
-async fn run_default_tests(session: &Session) -> Result<()> {
+async fn run_default_tests(session: &mut Session) -> Result<()> {
     let default_texts = vec![
         "This product is amazing!",
         "Terrible service, would not recommend.",
@@ -472,24 +469,18 @@ async fn main() -> Result<()> {
     }
     
     // Initialize ONNX Runtime
-    let environment = Environment::builder()
-        .with_name("binary_classifier")
-        .with_execution_providers([ExecutionProvider::cpu()])
-        .build()?
-        .into_arc();
-    
-    let session = SessionBuilder::new(&environment)?
+    let mut session = SessionBuilder::new()?
         .with_optimization_level(GraphOptimizationLevel::Level1)?
         .with_intra_threads(num_cpus::get())?
         .commit_from_file("model.onnx")?;
     
     if let Some(benchmark_runs) = matches.get_one::<String>("benchmark") {
         let num_runs = benchmark_runs.parse().unwrap_or(100);
-        run_performance_benchmark(num_runs, &session).await?;
+        run_performance_benchmark(num_runs, &mut session).await?;
     } else if let Some(text) = matches.get_one::<String>("text") {
-        test_single_text(text, &session).await?;
+        test_single_text(text, &mut session).await?;
     } else {
-        run_default_tests(&session).await?;
+        run_default_tests(&mut session).await?;
     }
     
     Ok(())
