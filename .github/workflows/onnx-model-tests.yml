@@ -26,7 +26,7 @@ on:
           - java
           - cpp
           - c
-          - java script
+          - nodejs
       custom_text:
         description: 'Input your text'
         required: false
@@ -412,24 +412,16 @@ jobs:
         with:
           node-version: '18'
           
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-          
       - name: Install Node.js dependencies
         run: |
           if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             cd tests/binary_classifier/nodejs
             echo "📦 Installing binary classifier Node.js dependencies..."
-            npm ci
+            npm install
           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             cd tests/multiclass_classifier/nodejs
             echo "📦 Installing multiclass classifier Node.js dependencies..."
-            npm ci
+            npm install
           fi
           
       - name: Run Node.js Tests
