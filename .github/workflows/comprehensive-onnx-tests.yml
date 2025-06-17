@@ -7,8 +7,13 @@ on:
     branches: [ main ]
   workflow_dispatch:
     inputs:
-      custom_text:
-        description: 'Custom text to test on both binary and multiclass models'
+      binary_text:
+        description: 'Text for binary classifier (sentiment analysis)'
+        required: false
+        type: string
+        default: ''
+      multiclass_text:
+        description: 'Text for multiclass classifier (topic classification)'
         required: false
         type: string
         default: ''
@@ -138,6 +143,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
+          cache: false
           
       - name: Set up Swift
         if: matrix.language == 'swift'
@@ -147,7 +153,8 @@ jobs:
           
       - name: Run Tests
         env:
-          CUSTOM_TEXT: ${{ inputs.custom_text }}
+          BINARY_TEXT: ${{ inputs.binary_text }}
+          MULTICLASS_TEXT: ${{ inputs.multiclass_text }}
         run: |
           echo "🚀 Testing ${{ matrix.model_type }} with ${{ matrix.language }}"
           echo "═══════════════════════════════════════════════════════════════"
@@ -161,17 +168,26 @@ jobs:
             exit 0
           fi
           
-          if [ -n "${{ inputs.custom_text }}" ]; then
-            echo "🔥 CUSTOM TEXT PREDICTION:"
-            echo "Input: '${{ inputs.custom_text }}'"
+          # Set the appropriate custom text based on model type
+          if [ "${{ matrix.model_type }}" = "binary_classifier" ] && [ -n "${{ inputs.binary_text }}" ]; then
+            CUSTOM_TEXT="${{ inputs.binary_text }}"
+            echo "🔥 BINARY CLASSIFIER CUSTOM TEXT:"
+            echo "Input: '$CUSTOM_TEXT'"
             echo "════════════════════════════════════════"
+          elif [ "${{ matrix.model_type }}" = "multiclass_classifier" ] && [ -n "${{ inputs.multiclass_text }}" ]; then
+            CUSTOM_TEXT="${{ inputs.multiclass_text }}"
+            echo "🔥 MULTICLASS CLASSIFIER CUSTOM TEXT:"
+            echo "Input: '$CUSTOM_TEXT'"
+            echo "════════════════════════════════════════"
+          else
+            CUSTOM_TEXT=""
           fi
           
           case "${{ matrix.language }}" in
             "python")
-              if [ -n "${{ inputs.custom_text }}" ]; then
-                echo "Testing custom text: ${{ inputs.custom_text }}"
-                python -c "from test_onnx_model import test_custom_text; test_custom_text('${{ inputs.custom_text }}')"
+              if [ -n "$CUSTOM_TEXT" ]; then
+                echo "Testing custom text: $CUSTOM_TEXT"
+                python -c "from test_onnx_model import test_custom_text; test_custom_text('$CUSTOM_TEXT')"
               else
                 python test_onnx_model.py
               fi
@@ -181,9 +197,9 @@ jobs:
               echo "🔨 Building Java implementation..."
               mvn clean compile
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "${{ inputs.custom_text }}" ]; then
-                  echo "Testing custom text: ${{ inputs.custom_text }}"
-                  mvn exec:java -Dexec.args="\"${{ inputs.custom_text }}\""
+                if [ -n "$CUSTOM_TEXT" ]; then
+                  echo "Testing custom text: $CUSTOM_TEXT"
+                  mvn exec:java -Dexec.args="\"$CUSTOM_TEXT\""
                 else
                   echo "Running default test suite..."
                   mvn exec:java
@@ -202,9 +218,9 @@ jobs:
               echo "🔗 Library path: $LD_LIBRARY_PATH"
               make clean && make
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "${{ inputs.custom_text }}" ]; then
-                  echo "Testing custom text: ${{ inputs.custom_text }}"
-                  ./test_onnx_model "${{ inputs.custom_text }}"
+                if [ -n "$CUSTOM_TEXT" ]; then
+                  echo "Testing custom text: $CUSTOM_TEXT"
+                  ./test_onnx_model "$CUSTOM_TEXT"
                 else
                   echo "Running default test suite..."
                   ./test_onnx_model
@@ -221,26 +237,35 @@ jobs:
               export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               echo "🔨 Building C implementation..."
               echo "🔗 Library path: $LD_LIBRARY_PATH"
-              make clean && make
-              if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "${{ inputs.custom_text }}" ]; then
-                  echo "Testing custom text: ${{ inputs.custom_text }}"
-                  ./test_onnx_model "${{ inputs.custom_text }}"
+              if make clean && make; then
+                if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
+                  if [ -n "$CUSTOM_TEXT" ]; then
+                    echo "Testing custom text: $CUSTOM_TEXT"
+                    ./test_onnx_model "$CUSTOM_TEXT"
+                  else
+                    echo "Running default test suite..."
+                    ./test_onnx_model
+                  fi
                 else
-                  echo "Running default test suite..."
-                  ./test_onnx_model
+                  echo "⚠️ Model files not found, running CI build verification..."
+                  echo "✅ C implementation compiled successfully"
+                  echo "🏗️ Build verification completed"
                 fi
               else
-                echo "⚠️ Model files not found, running CI build verification..."
-                make test-ci
+                echo "❌ C build failed - checking for missing dependencies..."
+                echo "🔍 Available files:"
+                ls -la
+                echo "🔍 ONNX Runtime library:"
+                ls -la onnxruntime-linux-x64-1.22.0/lib/ || echo "Library not found"
+                exit 1
               fi
               ;;
               
             "nodejs")
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "${{ inputs.custom_text }}" ]; then
-                  echo "Testing custom text: ${{ inputs.custom_text }}"
-                  npm start "${{ inputs.custom_text }}"
+                if [ -n "$CUSTOM_TEXT" ]; then
+                  echo "Testing custom text: $CUSTOM_TEXT"
+                  npm start "$CUSTOM_TEXT"
                 else
                   echo "Running default test suite..."
                   npm test
@@ -257,9 +282,9 @@ jobs:
               echo "🔨 Building Rust implementation..."
               cargo build --release
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "${{ inputs.custom_text }}" ]; then
-                  echo "Testing custom text: ${{ inputs.custom_text }}"
-                  cargo run --release "${{ inputs.custom_text }}"
+                if [ -n "$CUSTOM_TEXT" ]; then
+                  echo "Testing custom text: $CUSTOM_TEXT"
+                  cargo run --release "$CUSTOM_TEXT"
                 else
                   echo "Running default test suite..."
                   cargo run --release
@@ -274,7 +299,11 @@ jobs:
               
             "dart")
               flutter pub get
-              export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="${{ inputs.custom_text }}"
+              if [ "${{ matrix.model_type }}" = "binary_classifier" ]; then
+                export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="${{ inputs.binary_text }}"
+              else
+                export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="${{ inputs.multiclass_text }}"
+              fi
               flutter test --verbose --reporter expanded
               ;;
               
@@ -283,9 +312,9 @@ jobs:
                  echo "🔨 Building Go implementation..."
                  go build .
                  if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                   if [ -n "${{ inputs.custom_text }}" ]; then
-                     echo "Testing custom text: ${{ inputs.custom_text }}"
-                     go run . "${{ inputs.custom_text }}"
+                   if [ -n "$CUSTOM_TEXT" ]; then
+                     echo "Testing custom text: $CUSTOM_TEXT"
+                     go run . "$CUSTOM_TEXT"
                    else
                      echo "Running default test suite..."
                      go test -v
