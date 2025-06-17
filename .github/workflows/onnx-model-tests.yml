@@ -1079,11 +1079,11 @@ jobs:
           flutter-version: '3.16.0'
           channel: 'stable'
           
-      - name: Build Flutter Mobile Implementation
+      - name: Setup Flutter Mobile Implementation
         run: |
           if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             cd tests/binary_classifier/dart/flutter_app
-            echo "📱 Building binary classifier Flutter Mobile implementation..."
+            echo "📱 Setting up binary classifier Flutter Mobile implementation..."
             echo "📍 Working directory: $(pwd)"
             
             # Disable analytics for CI
@@ -1092,13 +1092,11 @@ jobs:
             # Get dependencies
             flutter pub get
             
-            # Build macOS desktop for mobile ONNX testing (iOS will be done separately in Swift)
-            echo "🖥️ Building Flutter macOS app (for mobile ONNX testing)..."
-            flutter build macos --release
+            echo "✅ Flutter mobile setup complete - ready for ONNX testing!"
             
           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
             cd tests/multiclass_classifier/dart/flutter_app
-            echo "📱 Building multiclass classifier Flutter Mobile implementation..."
+            echo "📱 Setting up multiclass classifier Flutter Mobile implementation..."
             echo "📍 Working directory: $(pwd)"
             
             # Disable analytics for CI
@@ -1107,9 +1105,7 @@ jobs:
             # Get dependencies
             flutter pub get
             
-            # Build macOS desktop for mobile ONNX testing (iOS will be done separately in Swift)
-            echo "🖥️ Building Flutter macOS app (for mobile ONNX testing)..."
-            flutter build macos --release
+            echo "✅ Flutter mobile setup complete - ready for ONNX testing!"
           fi
           
       - name: Run Mobile ONNX Tests
@@ -1227,8 +1223,6 @@ jobs:
         with:
           name: flutter-mobile-test-artifacts
           path: |
-            tests/binary_classifier/dart/flutter_app/build/macos/
-            tests/multiclass_classifier/dart/flutter_app/build/macos/
             tests/*/dart/flutter_app/coverage/
             tests/*/dart/flutter_app/*.log
           if-no-files-found: warn
