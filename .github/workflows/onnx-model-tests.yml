@@ -821,24 +821,34 @@ jobs:
       - name: Test Binary Classifier
         if: ${{ inputs.model_type == '' || contains(inputs.model_type, 'binary_classifier') }}
         working-directory: tests/binary_classifier/dart
+        env:
+          GITHUB_EVENT_INPUTS_CUSTOM_TEXT: ${{ inputs.custom_text }}
         run: |
           echo "🎯 Testing Binary Sentiment Classifier"
           flutter pub get
           if [ -n "${{ inputs.custom_text }}" ]; then
-            echo "Testing custom text: ${{ inputs.custom_text }}"
-            echo "✅ Would show real ONNX prediction for: ${{ inputs.custom_text }}"
+            echo "🔥 CUSTOM TEXT PREDICTION:"
+            echo "Input: '${{ inputs.custom_text }}'"
+            echo "════════════════════════════════════════"
+          else
+            echo "🧪 Running standard test suite..."
           fi
           flutter test
           
       - name: Test Multiclass Classifier  
         if: ${{ inputs.model_type == '' || contains(inputs.model_type, 'multiclass_classifier') }}
         working-directory: tests/multiclass_classifier/dart
+        env:
+          GITHUB_EVENT_INPUTS_CUSTOM_TEXT: ${{ inputs.custom_text }}
         run: |
           echo "📚 Testing Multiclass Topic Classifier"
           flutter pub get
           if [ -n "${{ inputs.custom_text }}" ]; then
-            echo "Testing custom text: ${{ inputs.custom_text }}"
-            echo "✅ Would show real ONNX prediction for: ${{ inputs.custom_text }}"
+            echo "🔥 CUSTOM TEXT PREDICTION:"
+            echo "Input: '${{ inputs.custom_text }}'"
+            echo "════════════════════════════════════════"
+          else
+            echo "🧪 Running standard test suite..."
           fi
           flutter test
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onnxruntime/onnxruntime.dart';
@@ -97,14 +98,25 @@ void main() {
       print("🚀 REAL ONNX BINARY CLASSIFICATION TEST");
       print("═══════════════════════════════════════");
       
-      final testCases = [
-        "This product is absolutely amazing and works perfectly!",
-        "Terrible experience, worst purchase ever, totally disappointed",
-        "The weather is okay today, nothing special but decent",
-        "I love this item, excellent quality and fast delivery!",
-        "Poor quality, broke after one day, very disappointed",
-        "Average product, not bad but could be better"
-      ];
+      // Check for custom text from CI environment
+      final customText = Platform.environment['GITHUB_EVENT_INPUTS_CUSTOM_TEXT'];
+      
+      List<String> testCases;
+      if (customText != null && customText.trim().isNotEmpty) {
+        print("🎯 CUSTOM TEXT MODE ACTIVATED");
+        print("Input Text: '$customText'");
+        print("═══════════════════════════════════════");
+        testCases = [customText];
+      } else {
+        testCases = [
+          "This product is absolutely amazing and works perfectly!",
+          "Terrible experience, worst purchase ever, totally disappointed", 
+          "The weather is okay today, nothing special but decent",
+          "I love this item, excellent quality and fast delivery!",
+          "Poor quality, broke after one day, very disappointed",
+          "Average product, not bad but could be better"
+        ];
+      }
       
       for (int i = 0; i < testCases.length; i++) {
         final text = testCases[i];

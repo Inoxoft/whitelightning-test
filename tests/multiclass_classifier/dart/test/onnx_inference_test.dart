@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onnxruntime/onnxruntime.dart';
@@ -79,14 +80,25 @@ void main() {
       print("🚀 REAL ONNX MULTICLASS CLASSIFICATION TEST");
       print("═══════════════════════════════════════════");
       
-      final testCases = [
-        "This scientific research presents groundbreaking discoveries",
-        "The latest sports match was absolutely thrilling and exciting", 
-        "Political debates continue over new economic policies",
-        "Technology advances are transforming our daily lives",
-        "Entertainment industry shows record breaking performances",
-        "Business markets show positive growth trends this quarter"
-      ];
+      // Check for custom text from CI environment
+      final customText = Platform.environment['GITHUB_EVENT_INPUTS_CUSTOM_TEXT'];
+      
+      List<String> testCases;
+      if (customText != null && customText.trim().isNotEmpty) {
+        print("🎯 CUSTOM TEXT MODE ACTIVATED");
+        print("Input Text: '$customText'");
+        print("═══════════════════════════════════════════");
+        testCases = [customText];
+      } else {
+        testCases = [
+          "This scientific research presents groundbreaking discoveries",
+          "The latest sports match was absolutely thrilling and exciting", 
+          "Political debates continue over new economic policies",
+          "Technology advances are transforming our daily lives",
+          "Entertainment industry shows record breaking performances",
+          "Business markets show positive growth trends this quarter"
+        ];
+      }
       
       for (int i = 0; i < testCases.length; i++) {
         final text = testCases[i];
