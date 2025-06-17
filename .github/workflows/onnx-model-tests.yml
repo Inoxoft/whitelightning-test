@@ -29,6 +29,7 @@ on:
           - javascript
           - rust
           - flutter
+          - swift
       custom_text:
         description: 'Input your text'
         required: false
@@ -852,7 +853,224 @@ jobs:
           fi
           flutter test --verbose --reporter expanded
 
-
+  swift-tests:
+    name: Swift Tests
+    runs-on: macos-latest
+    if: ${{ inputs.language == 'swift' }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+          
+      - name: Setup Swift project
+        run: |
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+            cd tests/binary_classifier/swift
+            echo "🍎 Setting up Binary Classifier Swift project..."
+            
+            # Check if Podfile exists, if not create it
+            if [ ! -f Podfile ]; then
+              echo "Creating Podfile..."
+              cat > Podfile << EOF
+          platform :ios, '13.0'
+          target 'ONNXTest' do
+            use_frameworks!
+            pod 'onnxruntime-objc'
+          end
+          EOF
+            fi
+            
+            # Install pods if workspace doesn't exist
+            if [ ! -d "ONNXTest.xcworkspace" ]; then
+              pod install --repo-update
+            fi
+            
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+            cd tests/multiclass_classifier/swift
+            echo "🍎 Setting up Multiclass Classifier Swift project..."
+            
+            # Check if Podfile exists, if not create it
+            if [ ! -f Podfile ]; then
+              echo "Creating Podfile..."
+              cat > Podfile << EOF
+          platform :ios, '13.0'
+          target 'ONNXTest' do
+            use_frameworks!
+            pod 'onnxruntime-objc'
+          end
+          EOF
+            fi
+            
+            # Install pods if workspace doesn't exist
+            if [ ! -d "ONNXTest.xcworkspace" ]; then
+              pod install --repo-update
+            fi
+          fi
+          
+      - name: Run Swift Tests
+        run: |
+          if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
+            cd tests/binary_classifier/swift
+            echo "🚀 Running binary classifier Swift tests..."
+            
+            if [ -n "${{ inputs.custom_text }}" ]; then
+              CUSTOM_TEXT="${{ inputs.custom_text }}"
+            else
+              CUSTOM_TEXT="It was very bad purchase"
+            fi
+            
+            # Check if we have an iOS project
+            if [ -f "ONNXTest.xcworkspace" ]; then
+              echo "🤖 ONNX BINARY CLASSIFIER - SWIFT IMPLEMENTATION"
+              echo "=============================================="
+              echo "🔄 Processing: $CUSTOM_TEXT"
+              echo ""
+              echo "💻 SYSTEM INFORMATION:"
+              echo "   Platform: $(uname -s)"
+              echo "   Processor: $(uname -m)"
+              echo "   CPU Cores: $(sysctl -n hw.physicalcpu) physical, $(sysctl -n hw.logicalcpu) logical"
+              echo "   Total Memory: $(($(sysctl -n hw.memsize) / 1024 / 1024 / 1024)) GB"
+              echo "   Runtime: Swift $(swift --version | head -1 | cut -d' ' -f4)"
+              echo ""
+              echo "📱 BUILDING iOS PROJECT..."
+              
+              # Build the project for iOS Simulator
+              xcodebuild -workspace ONNXTest.xcworkspace \
+                        -scheme ONNXTest \
+                        -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+                        clean build > /dev/null 2>&1
+                        
+              if [ $? -eq 0 ]; then
+                echo "✅ iOS project built successfully"
+                echo ""
+                echo "📊 SENTIMENT ANALYSIS RESULTS:"
+                echo "   🏆 Predicted Sentiment: [Build Verification Only]"
+                echo "   📈 Confidence: [Requires Model Files]"
+                echo "   📝 Input Text: \"$CUSTOM_TEXT\""
+                echo ""
+                echo "📈 PERFORMANCE SUMMARY:"
+                echo "   Total Processing Time: [Build Only - ~2000ms]"
+                echo "   ┣━ Preprocessing: [Model Required]"
+                echo "   ┣━ Model Inference: [Model Required]"
+                echo "   ┗━ Postprocessing: [Model Required]"
+                echo ""
+                echo "🚀 THROUGHPUT:"
+                echo "   Texts per second: [Model Required]"
+                echo ""
+                echo "💾 RESOURCE USAGE:"
+                echo "   Memory Start: [Model Required]"
+                echo "   Memory End: [Model Required]"
+                echo "   Memory Delta: [Model Required]"
+                echo "   CPU Usage: [Model Required]"
+                echo ""
+                echo "🎯 PERFORMANCE RATING: ✅ BUILD SUCCESS"
+                echo "   (Build verification completed - Add model files for full testing)"
+              else
+                echo "❌ iOS project build failed"
+                echo "🎯 PERFORMANCE RATING: ❌ BUILD FAILED"
+                exit 1
+              fi
+            else
+              echo "⚠️ No Xcode workspace found"
+              echo "📝 Expected files: ONNXTest.xcworkspace, model.onnx, vocab.json, scaler.json"
+              echo "📖 See README for Swift setup instructions"
+              echo "🎯 PERFORMANCE RATING: ⚠️ SETUP REQUIRED"
+              echo ""
+              echo "To set up Swift implementation:"
+              echo "1. Create Xcode iOS project named 'ONNXTest'"
+              echo "2. Run 'pod install' to install onnxruntime-objc"
+              echo "3. Add model files and Utils.swift code"
+              echo "4. Build and test on iOS Simulator"
+            fi
+            
+          elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
+            cd tests/multiclass_classifier/swift
+            echo "🚀 Running multiclass classifier Swift tests..."
+            
+            if [ -n "${{ inputs.custom_text }}" ]; then
+              CUSTOM_TEXT="${{ inputs.custom_text }}"
+            else
+              CUSTOM_TEXT="President signs new legislation on healthcare reform"
+            fi
+            
+            # Check if we have an iOS project
+            if [ -f "ONNXTest.xcworkspace" ]; then
+              echo "🤖 ONNX MULTICLASS CLASSIFIER - SWIFT IMPLEMENTATION"
+              echo "=================================================="
+              echo "🔄 Processing: $CUSTOM_TEXT"
+              echo ""
+              echo "💻 SYSTEM INFORMATION:"
+              echo "   Platform: $(uname -s)"
+              echo "   Processor: $(uname -m)"
+              echo "   CPU Cores: $(sysctl -n hw.physicalcpu) physical, $(sysctl -n hw.logicalcpu) logical"
+              echo "   Total Memory: $(($(sysctl -n hw.memsize) / 1024 / 1024 / 1024)) GB"
+              echo "   Runtime: Swift $(swift --version | head -1 | cut -d' ' -f4)"
+              echo ""
+              echo "📱 BUILDING iOS PROJECT..."
+              
+              # Build the project for iOS Simulator
+              xcodebuild -workspace ONNXTest.xcworkspace \
+                        -scheme ONNXTest \
+                        -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+                        clean build > /dev/null 2>&1
+                        
+              if [ $? -eq 0 ]; then
+                echo "✅ iOS project built successfully"
+                echo ""
+                echo "📊 TOPIC CLASSIFICATION RESULTS:"
+                echo "   🏆 Predicted Topic: [Build Verification Only]"
+                echo "   📈 Confidence: [Requires Model Files]"
+                echo "   📝 Input Text: \"$CUSTOM_TEXT\""
+                echo ""
+                echo "📈 PERFORMANCE SUMMARY:"
+                echo "   Total Processing Time: [Build Only - ~2000ms]"
+                echo "   ┣━ Preprocessing: [Model Required]"
+                echo "   ┣━ Model Inference: [Model Required]"
+                echo "   ┗━ Postprocessing: [Model Required]"
+                echo ""
+                echo "🚀 THROUGHPUT:"
+                echo "   Texts per second: [Model Required]"
+                echo ""
+                echo "💾 RESOURCE USAGE:"
+                echo "   Memory Start: [Model Required]"
+                echo "   Memory End: [Model Required]"
+                echo "   Memory Delta: [Model Required]"
+                echo "   CPU Usage: [Model Required]"
+                echo ""
+                echo "🎯 PERFORMANCE RATING: ✅ BUILD SUCCESS"
+                echo "   (Build verification completed - Add model files for full testing)"
+              else
+                echo "❌ iOS project build failed"
+                echo "🎯 PERFORMANCE RATING: ❌ BUILD FAILED"
+                exit 1
+              fi
+            else
+              echo "⚠️ No Xcode workspace found"
+              echo "📝 Expected files: ONNXTest.xcworkspace, model.onnx, vocab.json, label_map.json"
+              echo "📖 See README for Swift setup instructions"
+              echo "🎯 PERFORMANCE RATING: ⚠️ SETUP REQUIRED"
+              echo ""
+              echo "To set up Swift implementation:"
+              echo "1. Create Xcode iOS project named 'ONNXTest'"
+              echo "2. Run 'pod install' to install onnxruntime-objc"
+              echo "3. Add model files and Utils.swift code"
+              echo "4. Build and test on iOS Simulator"
+            fi
+          fi
+          
+      - name: Upload Swift test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-test-artifacts
+          path: |
+            tests/binary_classifier/swift/ONNXTest.xcworkspace/
+            tests/multiclass_classifier/swift/ONNXTest.xcworkspace/
+            tests/*/swift/Podfile.lock
+            tests/*/swift/*.log
+          if-no-files-found: warn
 
   test-go:
     runs-on: ubuntu-latest

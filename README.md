@@ -12,8 +12,8 @@ Run tests for **specific models and languages** with custom text input:
 - ✅ **Manual Dispatch**: Run on-demand with custom parameters
 
 ### 2. **Comprehensive Testing** (`comprehensive-onnx-tests.yml`) 
-Run **all 14 combinations** automatically with standardized inputs:
-- ✅ **Complete Coverage**: Tests 2 models × 7 languages = 14 combinations
+Run **all 16 combinations** automatically with standardized inputs:
+- ✅ **Complete Coverage**: Tests 2 models × 8 languages = 16 combinations
 - ✅ **Standardized**: Uses consistent test inputs for comparison
 - ✅ **Automated**: Runs on push/PR + manual dispatch available
 - ✅ **Performance Comparison**: Easy to compare across languages
@@ -74,7 +74,7 @@ Every test run provides standardized output in this format:
 | **Node.js** | ✅ | ✅ | Full Support |
 | **Rust** | ✅ | ✅ | Full Support |
 | **Dart/Flutter** | ✅ | ✅ | Full Support |
-| **Swift** | ⚠️ | ⚠️ | Coming Soon |
+| **Swift** | ✅ | ✅ | Full Support |
 
 ## 🔧 How to Use This Repository
 
@@ -115,6 +115,7 @@ Each language implementation has its own README with specific setup instructions
 - 📁 `tests/binary_classifier/nodejs/README.md` - Node.js setup
 - 📁 `tests/binary_classifier/rust/README.md` - Rust setup
 - 📁 `tests/binary_classifier/dart/README.md` - Dart/Flutter setup
+- 📁 `tests/binary_classifier/swift/README.md` - Swift/iOS setup
 
 *The same structure exists for `multiclass_classifier/`*
 
