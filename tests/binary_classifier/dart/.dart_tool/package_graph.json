@@ -25,7 +25,7 @@
     },
     {
       "name": "flutter_lints",
-      "version": "5.0.0",
+      "version": "4.0.0",
       "dependencies": [
         "lints"
       ]
@@ -65,7 +65,7 @@
     },
     {
       "name": "fl_chart",
-      "version": "0.66.2",
+      "version": "0.60.0",
       "dependencies": [
         "equatable",
         "flutter"
@@ -156,7 +156,7 @@
     },
     {
       "name": "lints",
-      "version": "5.1.1",
+      "version": "4.0.0",
       "dependencies": []
     },
     {

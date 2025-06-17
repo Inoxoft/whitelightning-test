@@ -807,6 +807,9 @@ jobs:
           flutter-version: '3.16.0'
           channel: 'stable'
           
+      - name: Disable Flutter Analytics
+        run: flutter config --no-analytics
+          
       - name: Install ONNX Runtime
         run: |
           wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.15.1/onnxruntime-linux-x64-1.15.1.tgz
