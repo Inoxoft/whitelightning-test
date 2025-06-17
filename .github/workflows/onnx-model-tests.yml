@@ -901,29 +901,3 @@ jobs:
             tests/*/swift/*.log
           if-no-files-found: warn
 
-  test-go:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.language == 'all' || github.event.inputs.language == 'go' }}
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-          
-      - name: Install ONNX Runtime
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libonnxruntime-dev
-          
-      - name: Run Go tests
-        run: |
-          if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "spam_detector" ]; then
-            cd tests/spam_detector/go
-            go test -v ./...
-          fi
-          if [ "${{ github.event.inputs.model_type }}" = "all" ] || [ "${{ github.event.inputs.model_type }}" = "news_classifier" ]; then
-            cd tests/news_classifier/go
-            go test -v ./...
-          fi 

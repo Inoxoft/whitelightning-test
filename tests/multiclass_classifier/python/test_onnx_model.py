@@ -434,64 +434,43 @@ def test_custom_text(text):
     tester = ONNXMulticlassModelTester(model_path)
     assert tester.test_model_loading(), "Model loading failed"
     
-    # Get model information
-    input_info = tester.session.get_inputs()[0]
-    output_info = tester.session.get_outputs()[0]
-    
-    print(f"📝 INPUT TEXT:")
-    print(f"   '{text}'")
-    print(f"   Length: {len(text)} characters, {len(text.split())} words")
-    print()
-    
-    print("🔧 MODEL INFORMATION:")
-    print(f"   Model Path: {model_path}")
-    print(f"   Input Shape: {input_info.shape}")
-    print(f"   Input Type: {input_info.type}")
-    print(f"   Output Shape: {output_info.shape}")
-    print(f"   Output Type: {output_info.type}")
-    print(f"   Vocabulary Size: {len(tester.vocab)}")
-    print(f"   Number of Classes: {len(tester.label_map)}")
-    print(f"   Available Labels: {list(tester.label_map.values())}")
-    print()
-    
     # System information
     system_info = tester._get_system_info()
     print("💻 SYSTEM INFORMATION:")
     print(f"   Platform: {system_info['platform']}")
-    print(f"   CPU: {system_info['processor']}")
-    print(f"   CPU Cores: {system_info['cpu_count']} physical, {system_info['cpu_count_logical']} logical")
+    print(f"   Processor: {system_info['cpu_count']} cores")
     print(f"   Total Memory: {system_info['total_memory_gb']:.1f} GB")
-    print(f"   Python Version: {system_info['python_version']}")
-    print(f"   Current Memory Usage: {tester._get_memory_usage():.1f} MB")
+    print(f"   Runtime: Python Implementation")
     print()
-    
-    # Preprocessing
-    input_vector = tester.preprocess_text(text)
-    print()
-    
-    # Run inference with detailed timing and resource monitoring
-    print("⚡ INFERENCE EXECUTION:")
     
     # Pre-inference measurements
     pre_inference_time = time.time()
     pre_memory = tester._get_memory_usage()
-    pre_cpu = tester._get_cpu_usage()
     
     # Start continuous CPU monitoring
-    cpu_readings, cpu_monitor = tester._monitor_cpu_continuously(duration_seconds=1.0)
+    cpu_readings, cpu_monitor = tester._monitor_cpu_continuously(duration_seconds=0.5)
     
+    # Preprocessing timing
+    preprocess_start = time.time()
+    input_vector = tester.preprocess_text(text)
+    preprocess_time = time.time() - preprocess_start
+    
+    # Model inference timing
     input_name = tester.session.get_inputs()[0].name
     output_name = tester.session.get_outputs()[0].name
     input_data = input_vector.reshape(1, 30)
     
-    # Debug: show input data shape and sample
-    print(f"   Input data shape: {input_data.shape}")
-    print(f"   Input data sample: {input_data[0][:10]}...")
-    
-    # Model inference timing
     inference_start = time.time()
     outputs = tester.session.run([output_name], {input_name: input_data})
-    inference_end = time.time()
+    inference_time = time.time() - inference_start
+    
+    # Post-processing timing
+    postprocess_start = time.time()
+    probabilities = outputs[0][0]
+    predicted_idx = np.argmax(probabilities)
+    predicted_label = tester.label_map[str(predicted_idx)]
+    confidence_score = probabilities[predicted_idx]
+    postprocess_time = time.time() - postprocess_start
     
     # Wait for CPU monitoring to complete
     time.sleep(0.1)
@@ -500,44 +479,15 @@ def test_custom_text(text):
     # Post-inference measurements
     post_inference_time = time.time()
     post_memory = tester._get_memory_usage()
-    post_cpu = tester._get_cpu_usage()
-    
-    # Get prediction results
-    probabilities = outputs[0][0]
-    predicted_idx = np.argmax(probabilities)
-    predicted_label = tester.label_map[str(predicted_idx)]
-    confidence_score = probabilities[predicted_idx]
     
     # Calculate performance metrics
     total_time = post_inference_time - pre_inference_time
-    inference_time = inference_end - inference_start
     memory_delta = post_memory - pre_memory
     cpu_avg = np.mean(cpu_readings) if cpu_readings else 0
-    cpu_max = np.max(cpu_readings) if cpu_readings else 0
-    
-    print(f"   Raw model outputs: {outputs[0][0]}")
-    print()
-    print("📈 PERFORMANCE SUMMARY:")
-    print(f"   Total Processing Time: {total_time*1000:.1f}ms")
-    print(f"   ┣━ Preprocessing: ~{(total_time-inference_time)*1000/2:.1f}ms")
-    print(f"   ┣━ Model Inference: {inference_time*1000:.1f}ms")
-    print(f"   ┗━ Postprocessing: ~{(total_time-inference_time)*1000/2:.1f}ms")
-    print()
-    
-    print("🚀 THROUGHPUT:")
-    print(f"   Texts per second: {1/total_time:.1f}")
-    print()
-    
-    print("💾 RESOURCE USAGE:")
-    print(f"   Memory Start: {pre_memory:.1f}MB")
-    print(f"   Memory End: {post_memory:.1f}MB")
-    print(f"   Memory Delta: {memory_delta:+.1f}MB")
-    print(f"   CPU Usage: {cpu_avg:.1f}% avg, {cpu_max:.1f}% peak")
-    print()
     
     # Results
     print("📊 TOPIC CLASSIFICATION RESULTS:")
-    print(f"⏱️  Processing Time: {total_time*1000:.1f}ms")
+    print(f"⏱️  Processing Time: {total_time*1000:.0f}ms")
     
     # Category emojis
     category_emojis = {
@@ -548,7 +498,7 @@ def test_custom_text(text):
         'entertainment': '🎭'
     }
     
-    emoji = category_emojis.get(predicted_label, '📝')
+    emoji = category_emojis.get(predicted_label.lower(), '📝')
     print(f"   🏆 Predicted Category: {predicted_label.upper()} {emoji}")
     print(f"   📈 Confidence: {confidence_score*100:.1f}%")
     print(f"   📝 Input Text: \"{text}\"")
@@ -557,10 +507,29 @@ def test_custom_text(text):
     print("📊 DETAILED PROBABILITIES:")
     for i, prob in enumerate(probabilities):
         label = tester.label_map[str(i)]
-        emoji = category_emojis.get(label, '📝')
+        label_emoji = category_emojis.get(label.lower(), '📝')
         bar = "█" * int(prob * 20)
         star = " ⭐" if i == predicted_idx else ""
-        print(f"   {emoji} {label.capitalize()}: {prob*100:.1f}% {bar}{star}")
+        print(f"   {label_emoji} {label.capitalize()}: {prob*100:.1f}% {bar}{star}")
+    print()
+    
+    print("📈 PERFORMANCE SUMMARY:")
+    print(f"   Total Processing Time: ~{total_time*1000:.0f}ms")
+    print(f"   ┣━ Preprocessing: ~{preprocess_time*1000:.0f}ms")
+    print(f"   ┣━ Model Inference: ~{inference_time*1000:.0f}ms")
+    print(f"   ┗━ Postprocessing: ~{postprocess_time*1000:.0f}ms")
+    print()
+    
+    print("🚀 THROUGHPUT:")
+    print(f"   Texts per second: ~{1/total_time:.0f}")
+    print()
+    
+    print("💾 RESOURCE USAGE:")
+    print(f"   Memory Start: ~{pre_memory:.0f}MB")
+    print(f"   Memory End: ~{post_memory:.0f}MB")
+    print(f"   Memory Delta: ~{memory_delta:+.0f}MB")
+    print(f"   CPU Usage: ~{cpu_avg:.0f}%")
+    print()
     
     # Performance rating
     if confidence_score > 0.8:
@@ -571,7 +540,7 @@ def test_custom_text(text):
         rating = "🎯 LOW CONFIDENCE"
     
     print(f"🎯 PERFORMANCE RATING: ✅ {rating}")
-    print(f"   ({total_time*1000:.1f}ms total - Python implementation)")
+    print(f"   ({total_time*1000:.0f}ms total - Python implementation)")
 
 if __name__ == "__main__":
     test_multiclass_classifier() 
