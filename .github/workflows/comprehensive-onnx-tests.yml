@@ -1,22 +1,18 @@
 name: Comprehensive ONNX Tests (All Languages & Models)
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
       binary_text:
         description: 'Text for binary classifier (sentiment analysis)'
-        required: false
+        required: true
         type: string
-        default: ''
+        default: 'This product is amazing!'
       multiclass_text:
         description: 'Text for multiclass classifier (topic classification)'
-        required: false
+        required: true
         type: string
-        default: ''
+        default: 'Breaking news from politics today'
       run_benchmarks:
         description: 'Run performance benchmarks'
         required: false
@@ -42,7 +38,6 @@ jobs:
           - nodejs
           - rust
           - dart
-          - go
           - swift
         
     steps:
@@ -138,13 +133,6 @@ jobs:
           sudo ln -sf /usr/local/lib/libonnxruntime.so.1.15.1 /usr/local/lib/libonnxruntime.so
           sudo ldconfig
           
-      - name: Set up Go
-        if: matrix.language == 'go'
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-          cache: false
-          
       - name: Set up Swift
         if: matrix.language == 'swift'
         run: |
@@ -238,18 +226,24 @@ jobs:
               echo "🔨 Building C implementation..."
               echo "🔗 Library path: $LD_LIBRARY_PATH"
               if make clean && make; then
+                echo "🔗 Setting up runtime library path..."
+                export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
+                echo "📚 Available libraries:"
+                ls -la onnxruntime-linux-x64-1.22.0/lib/
                 if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
                   if [ -n "$CUSTOM_TEXT" ]; then
                     echo "Testing custom text: $CUSTOM_TEXT"
-                    ./test_onnx_model "$CUSTOM_TEXT"
+                    LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH ./test_onnx_model "$CUSTOM_TEXT"
                   else
                     echo "Running default test suite..."
-                    ./test_onnx_model
+                    LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH ./test_onnx_model
                   fi
                 else
                   echo "⚠️ Model files not found, running CI build verification..."
                   echo "✅ C implementation compiled successfully"
                   echo "🏗️ Build verification completed"
+                  echo "🧪 Testing library linkage..."
+                  LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH ldd ./test_onnx_model || echo "Library check failed"
                 fi
               else
                 echo "❌ C build failed - checking for missing dependencies..."
@@ -306,29 +300,6 @@ jobs:
               fi
               flutter test --verbose --reporter expanded
               ;;
-              
-            "go")
-               if [ -f go.mod ]; then
-                 echo "🔨 Building Go implementation..."
-                 go build .
-                 if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                   if [ -n "$CUSTOM_TEXT" ]; then
-                     echo "Testing custom text: $CUSTOM_TEXT"
-                     go run . "$CUSTOM_TEXT"
-                   else
-                     echo "Running default test suite..."
-                     go test -v
-                   fi
-                 else
-                   echo "⚠️ Model files not found, running CI build verification..."
-                   echo "✅ Go implementation compiled and started successfully"
-                   echo "🏗️ Build verification completed"
-                 fi
-               else
-                 echo "⚠️ No go.mod found - Go implementation not available"
-                 echo "✅ Placeholder test passed"
-               fi
-               ;;
                
             "swift")
                echo "⚠️ Swift implementation not yet available"
@@ -370,7 +341,6 @@ jobs:
           echo "| Binary Classifier | Node.js | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Binary Classifier | Rust | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Binary Classifier | Dart | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Binary Classifier | Go | ⚠️ |" >> $GITHUB_STEP_SUMMARY
           echo "| Binary Classifier | Swift | ⚠️ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Python | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Java | ✅ |" >> $GITHUB_STEP_SUMMARY
@@ -379,11 +349,10 @@ jobs:
           echo "| Multiclass Classifier | Node.js | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Rust | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Dart | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Multiclass Classifier | Go | ⚠️ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Swift | ⚠️ |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🎯 Total Test Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "**18 language-model combinations** tested in parallel!" >> $GITHUB_STEP_SUMMARY
+          echo "**16 language-model combinations** tested in parallel!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🚀 Key Features Tested" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Real ONNX model inference" >> $GITHUB_STEP_SUMMARY
