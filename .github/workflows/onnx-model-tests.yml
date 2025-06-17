@@ -1092,12 +1092,8 @@ jobs:
             # Get dependencies
             flutter pub get
             
-            # Build iOS app to test native ONNX
-            echo "🍎 Building Flutter iOS app (for ONNX testing)..."
-            flutter build ios --release --no-codesign
-            
-            # Also build macOS desktop for desktop ONNX testing
-            echo "🖥️ Building Flutter macOS app (for desktop ONNX testing)..."
+            # Build macOS desktop for mobile ONNX testing (iOS will be done separately in Swift)
+            echo "🖥️ Building Flutter macOS app (for mobile ONNX testing)..."
             flutter build macos --release
             
           elif [[ "${{ inputs.model_type }}" == *"multiclass_classifier"* ]]; then
@@ -1111,12 +1107,8 @@ jobs:
             # Get dependencies
             flutter pub get
             
-            # Build iOS app to test native ONNX
-            echo "🍎 Building Flutter iOS app (for ONNX testing)..."
-            flutter build ios --release --no-codesign
-            
-            # Also build macOS desktop for desktop ONNX testing
-            echo "🖥️ Building Flutter macOS app (for desktop ONNX testing)..."
+            # Build macOS desktop for mobile ONNX testing (iOS will be done separately in Swift)
+            echo "🖥️ Building Flutter macOS app (for mobile ONNX testing)..."
             flutter build macos --release
           fi
           
@@ -1235,9 +1227,7 @@ jobs:
         with:
           name: flutter-mobile-test-artifacts
           path: |
-            tests/binary_classifier/dart/flutter_app/build/ios/
             tests/binary_classifier/dart/flutter_app/build/macos/
-            tests/multiclass_classifier/dart/flutter_app/build/ios/
             tests/multiclass_classifier/dart/flutter_app/build/macos/
             tests/*/dart/flutter_app/coverage/
             tests/*/dart/flutter_app/*.log
