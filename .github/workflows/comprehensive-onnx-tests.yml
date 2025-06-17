@@ -26,7 +26,6 @@ jobs:
           - nodejs
           - rust
           - dart
-          - swift
         
     steps:
       - uses: actions/checkout@v4
@@ -127,13 +126,11 @@ jobs:
           sudo ln -sf /usr/local/lib/libonnxruntime.so.1.15.1 /usr/local/lib/libonnxruntime.so
           sudo ldconfig
           
-      - name: Set up Swift
-        if: matrix.language == 'swift'
-        run: |
-          echo "⚠️ Swift tests currently not implemented"
-          echo "✅ Placeholder for future Swift support"
+
           
       - name: Run Tests
+        env:
+          STANDARD_TEST_TEXT: "It was very bad purchase"
         run: |
           echo "🚀 Testing ${{ matrix.model_type }} with ${{ matrix.language }}"
           echo "═══════════════════════════════════════════════════════════════"
@@ -149,19 +146,28 @@ jobs:
           
           case "${{ matrix.language }}" in
             "python")
-              python test_onnx_model.py
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - PYTHON IMPLEMENTATION"
+                echo "=============================================="
+                python test_onnx_model.py "$STANDARD_TEST_TEXT"
+              else
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - PYTHON IMPLEMENTATION"  
+                echo "=================================================="
+                python test_onnx_model.py "$STANDARD_TEST_TEXT"
+              fi
               ;;
               
             "java")
               echo "🔨 Building Java implementation..."
               mvn clean compile
-              if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                echo "Running default test suite..."
-                mvn exec:java
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - JAVA IMPLEMENTATION"
+                echo "============================================="
+                mvn exec:java -Dexec.args="\"$STANDARD_TEST_TEXT\""
               else
-                echo "⚠️ Model files not found, running CI build verification..."
-                echo "✅ Java implementation compiled and started successfully"
-                mvn exec:java || echo "Expected exit for missing model files"
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - JAVA IMPLEMENTATION"
+                echo "==============================================="
+                mvn exec:java -Dexec.args="\"$STANDARD_TEST_TEXT\""
               fi
               ;;
               
@@ -172,12 +178,14 @@ jobs:
               export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               cd tests/${{ matrix.model_type }}/cpp
               make clean && make
-              if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                echo "Running default test suite..."
-                ./test_onnx_model
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - C++ IMPLEMENTATION"
+                echo "============================================="
+                ./test_onnx_model "$STANDARD_TEST_TEXT"
               else
-                echo "⚠️ Model files not found, running CI build verification..."
-                ./test_onnx_model || echo "Expected exit for missing model files"
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - C++ IMPLEMENTATION"
+                echo "==============================================="
+                ./test_onnx_model "$STANDARD_TEST_TEXT"
               fi
               ;;
               
@@ -188,41 +196,58 @@ jobs:
               export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               cd tests/${{ matrix.model_type }}/c
               make clean && make
-              echo "Running default test suite..."
-              ./test_onnx_model
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
+                echo "==========================================="
+                ./test_onnx_model "$STANDARD_TEST_TEXT"
+              else
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - C IMPLEMENTATION"
+                echo "============================================="
+                ./test_onnx_model "$STANDARD_TEST_TEXT"
+              fi
               ;;
               
             "nodejs")
-              if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                echo "Running default test suite..."
-                npm test
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - NODE.JS IMPLEMENTATION"
+                echo "==============================================="
+                node test_onnx_model.js "$STANDARD_TEST_TEXT"
               else
-                echo "⚠️ Model files not found, running CI build verification..."
-                npm test || echo "Expected exit for missing model files"
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - NODE.JS IMPLEMENTATION"
+                echo "================================================="
+                node test_onnx_model.js "$STANDARD_TEST_TEXT"
               fi
               ;;
               
             "rust")
               echo "🔨 Building Rust implementation..."
               cargo build --release
-              if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                echo "Running default test suite..."
-                cargo run --release
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - RUST IMPLEMENTATION"
+                echo "============================================="
+                cargo run --release -- "$STANDARD_TEST_TEXT"
               else
-                echo "⚠️ Model files not found, running CI build verification..."
-                cargo run --release || echo "Expected exit for missing model files"
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - RUST IMPLEMENTATION"
+                echo "==============================================="
+                cargo run --release -- "$STANDARD_TEST_TEXT"
               fi
               ;;
               
             "dart")
               flutter pub get
-              flutter test --verbose --reporter expanded
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - DART IMPLEMENTATION"
+                echo "============================================="
+                # Set environment variable for Dart test
+                export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="$STANDARD_TEST_TEXT"
+                flutter test --verbose --reporter expanded
+              else
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - DART IMPLEMENTATION"
+                echo "==============================================="
+                export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="$STANDARD_TEST_TEXT"
+                flutter test --verbose --reporter expanded
+              fi
               ;;
-               
-            "swift")
-               echo "⚠️ Swift implementation not yet available"
-               echo "✅ Placeholder test passed"
-               ;;
           esac
           
       - name: Upload Test Results
@@ -259,7 +284,7 @@ jobs:
           echo "| Binary Classifier | Node.js | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Binary Classifier | Rust | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Binary Classifier | Dart | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Binary Classifier | Swift | ⚠️ |" >> $GITHUB_STEP_SUMMARY
+
           echo "| Multiclass Classifier | Python | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Java | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | C++ | ✅ |" >> $GITHUB_STEP_SUMMARY
@@ -267,7 +292,7 @@ jobs:
           echo "| Multiclass Classifier | Node.js | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Rust | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Dart | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Multiclass Classifier | Swift | ⚠️ |" >> $GITHUB_STEP_SUMMARY
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🎯 Total Test Coverage" >> $GITHUB_STEP_SUMMARY
           echo "**16 language-model combinations** tested in parallel!" >> $GITHUB_STEP_SUMMARY
