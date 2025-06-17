@@ -3,9 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-// Import ONNX Runtime for mobile/desktop platforms
-// Note: This import will be conditionally used based on platform
-import 'package:onnxruntime/onnxruntime.dart' as ort;
+
+// Conditional imports for platform-specific ONNX Runtime support
+import 'onnx_runner_stub.dart' if (dart.library.io) 'onnx_runner_native.dart' if (dart.library.html) 'onnx_runner_web.dart';
 
 Future<Float32List> preprocessText(String text) async {
   final vocabJson = await rootBundle.loadString('assets/models/vocab.json');
@@ -49,84 +49,28 @@ Future<Float32List> preprocessText(String text) async {
 
 Future<double> classifyTextBinary(String text) async {
   try {
-    // Try to use real ONNX Runtime on mobile/desktop platforms
-    if (!kIsWeb) {
-      print('🧠 Attempting ONNX Runtime inference on mobile/desktop...');
-      
-      try {
-        // Initialize ONNX Runtime
-        ort.OrtEnv.instance.init();
-        
-        // Load the ONNX model
-        final modelBytes = await rootBundle.load('assets/models/model.onnx');
-        final sessionOptions = ort.OrtSessionOptions();
-        final session = ort.OrtSession.fromBuffer(modelBytes.buffer.asUint8List(), sessionOptions);
-        
-        // Preprocess the text to create input tensor
-        final processedVector = await preprocessText(text);
-        
-        // Get input name from model
-        final inputNames = session.inputNames;
-        if (inputNames.isEmpty) {
-          throw Exception('No input names found in the model');
-        }
-        final inputName = inputNames[0];
-        
-        // Create input tensor
-        final inputTensor = ort.OrtValueTensor.createTensorWithDataList(
-          processedVector, // data
-          [1, processedVector.length], // shape: [batch_size, features]
-        );
-        
-        // Run inference
-        final result = await session.runAsync(ort.OrtRunOptions(), {
-          inputName: inputTensor,
-        });
-        
-        // Extract prediction (probability)
-        final resultList = result?.toList();
-        double probability = 0.5; // default fallback
-        
-        if (resultList != null && resultList.isNotEmpty && resultList[0] != null) {
-          final outputTensor = resultList[0] as ort.OrtValueTensor;
-          final List<dynamic> probabilities = outputTensor.value as List<dynamic>;
-          final List<dynamic> flatProbs = (probabilities.isNotEmpty && probabilities.first is List)
-              ? probabilities.first as List<dynamic>
-              : probabilities;
-          if (flatProbs.isNotEmpty) {
-            probability = (flatProbs[0] as num).toDouble();
-          }
-        }
-        
-        // Cleanup
-        inputTensor.release();
-        session.release();
-        ort.OrtEnv.instance.release();
-        
-        print('✅ ONNX Runtime inference successful: ${(probability * 100).toStringAsFixed(2)}%');
-        return probability.clamp(0.0, 1.0);
-        
-      } catch (onnxError) {
-        print('⚠️ ONNX Runtime failed: $onnxError');
-        print('📱 Falling back to enhanced keyword-based classification...');
-        // Fall through to mock implementation
-      }
-    } else {
-      print('🌐 Web platform detected - using keyword-based classification');
-    }
+    print('🚀 Starting classification for: "$text"');
+    print('🔧 Platform: ${OnnxRunner.platformInfo}');
+    print('⚡ ONNX Available: ${OnnxRunner.isAvailable}');
     
-    // Fallback: Enhanced mock logic for binary classification
+    // Preprocess the text
+    final processedVector = await preprocessText(text);
+    print('📊 Preprocessed vector size: ${processedVector.length}');
+    
+    // Use platform-specific ONNX runner
+    final probability = await OnnxRunner.classifyText(text, processedVector);
+    
+    print('🎯 Final classification result: ${(probability * 100).toStringAsFixed(2)}%');
+    return probability;
+    
+  } catch (e) {
+    print('❌ Classification error: $e');
+    print('🔄 Using emergency fallback...');
+    
+    // Emergency fallback - simple keyword counting
     final words = text.toLowerCase().split(' ');
-    final positiveWords = [
-      'good', 'great', 'excellent', 'amazing', 'love', 'best', 'wonderful', 'fantastic',
-      'awesome', 'perfect', 'outstanding', 'brilliant', 'superb', 'magnificent', 'incredible',
-      'delightful', 'impressive', 'remarkable', 'exceptional', 'marvelous', 'splendid'
-    ];
-    final negativeWords = [
-      'bad', 'terrible', 'awful', 'hate', 'worst', 'horrible', 'disappointing',
-      'disgusting', 'pathetic', 'useless', 'dreadful', 'appalling', 'atrocious',
-      'abysmal', 'deplorable', 'detestable', 'repulsive', 'revolting', 'vile'
-    ];
+    final positiveWords = ['good', 'great', 'excellent', 'amazing', 'love', 'best'];
+    final negativeWords = ['bad', 'terrible', 'awful', 'hate', 'worst', 'horrible'];
     
     int positiveCount = 0;
     int negativeCount = 0;
@@ -136,25 +80,15 @@ Future<double> classifyTextBinary(String text) async {
       if (negativeWords.contains(word)) negativeCount++;
     }
     
-    // Calculate probability based on word counts
-    double baseProbability = 0.5;
-    
+    double probability = 0.5;
     if (positiveCount > negativeCount) {
-      baseProbability = 0.7 + (positiveCount - negativeCount) * 0.1;
+      probability = 0.7;
     } else if (negativeCount > positiveCount) {
-      baseProbability = 0.3 - (negativeCount - positiveCount) * 0.1;
+      probability = 0.3;
     }
     
-    // Add slight variation and clamp between 0.1 and 0.9
-    final variation = (DateTime.now().millisecondsSinceEpoch % 100) / 1000.0;
-    final finalProbability = (baseProbability + variation).clamp(0.1, 0.9);
-    
-    print('📊 Keyword-based classification result: ${(finalProbability * 100).toStringAsFixed(2)}%');
-    return finalProbability;
-    
-  } catch (e) {
-    print('❌ Classification error: $e');
-    return 0.5; // Return neutral probability on error
+    print('🆘 Emergency fallback result: ${(probability * 100).toStringAsFixed(2)}%');
+    return probability;
   }
 }
 
