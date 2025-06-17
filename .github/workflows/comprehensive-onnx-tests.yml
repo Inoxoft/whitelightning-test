@@ -135,7 +135,7 @@ jobs:
         run: |
           # Set different test texts for each model type
           if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
-            STANDARD_TEST_TEXT="Congratulations! You've won a free iPhone — click here to claim your prize now!"
+            STANDARD_TEST_TEXT="It was a very bad purchase"
           else
             STANDARD_TEST_TEXT="President signs new legislation on healthcare reform"
           fi

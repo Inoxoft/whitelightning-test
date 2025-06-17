@@ -274,30 +274,42 @@ std::vector<float> preprocess_text(const std::string& text, const std::string& v
     std::vector<float> mean = scaler_data["mean"];
     std::vector<float> scale = scaler_data["scale"];
     
-    // TF-IDF processing
+    // TF-IDF processing - FIXED calculation
     std::string text_lower = text;
     std::transform(text_lower.begin(), text_lower.end(), text_lower.begin(), ::tolower);
     std::map<std::string, int> word_counts;
+    int total_words = 0;
     
-    // Tokenize
+    // Tokenize and count words
     size_t start = 0, end;
     while ((end = text_lower.find(' ', start)) != std::string::npos) {
         if (end > start) {
             std::string word = text_lower.substr(start, end - start);
-            word_counts[word]++;
+            if (!word.empty()) {
+                word_counts[word]++;
+                total_words++;
+            }
         }
         start = end + 1;
     }
     if (start < text_lower.length()) {
-        word_counts[text_lower.substr(start)]++;
+        std::string word = text_lower.substr(start);
+        if (!word.empty()) {
+            word_counts[word]++;
+            total_words++;
+        }
     }
     
-    // Apply TF-IDF
-    for (const auto& [word, count] : word_counts) {
-        if (vocab.contains(word)) {
-            int idx = vocab[word];
-            if (idx < 5000) {
-                vector[idx] = count * idf[idx];
+    // Apply CORRECTED TF-IDF with proper normalization
+    if (total_words > 0) {
+        for (const auto& [word, count] : word_counts) {
+            if (vocab.contains(word)) {
+                int idx = vocab[word];
+                if (idx < 5000) {
+                    // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
+                    double tf = static_cast<double>(count) / total_words;  // Term Frequency normalization
+                    vector[idx] = tf * idf[idx];                           // Correct TF-IDF calculation
+                }
             }
         }
     }

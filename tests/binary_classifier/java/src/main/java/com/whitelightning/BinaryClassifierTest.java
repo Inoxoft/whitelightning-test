@@ -205,25 +205,33 @@ public class BinaryClassifierTest {
         JsonNode meanArray = scalerData.get("mean");
         JsonNode scaleArray = scalerData.get("scale");
         
-        // Tokenize and count words
+        // Tokenize and count words - FIXED TF-IDF calculation
         String textLower = text.toLowerCase();
         String[] words = textLower.split("\\s+");
         Map<String, Integer> wordCounts = new HashMap<>();
+        int totalWords = 0;
         
         for (String word : words) {
-            wordCounts.put(word, wordCounts.getOrDefault(word, 0) + 1);
+            if (!word.isEmpty()) {
+                wordCounts.put(word, wordCounts.getOrDefault(word, 0) + 1);
+                totalWords++;
+            }
         }
         
-        // Apply TF-IDF
-        for (Map.Entry<String, Integer> entry : wordCounts.entrySet()) {
-            String word = entry.getKey();
-            int count = entry.getValue();
-            
-            if (vocab.has(word)) {
-                int idx = vocab.get(word).asInt();
-                if (idx < 5000) {
-                    double idf = idfArray.get(idx).asDouble();
-                    vector[idx] = (float) (count * idf);
+        // Apply CORRECTED TF-IDF with proper normalization
+        if (totalWords > 0) {
+            for (Map.Entry<String, Integer> entry : wordCounts.entrySet()) {
+                String word = entry.getKey();
+                int count = entry.getValue();
+                
+                if (vocab.has(word)) {
+                    int idx = vocab.get(word).asInt();
+                    if (idx < 5000) {
+                        double idf = idfArray.get(idx).asDouble();
+                        // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
+                        double tf = (double) count / totalWords;  // Term Frequency normalization
+                        vector[idx] = (float) (tf * idf);         // Correct TF-IDF calculation
+                    }
                 }
             }
         }

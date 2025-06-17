@@ -306,15 +306,26 @@ impl BinaryClassifier {
     fn preprocess_text(&self, text: &str) -> Vec<f32> {
         let mut vector = vec![0.0; 5000];
         let mut word_counts: HashMap<&str, usize> = HashMap::new();
+        let mut total_words = 0;
 
         let text_lower = text.to_lowercase();
         for word in text_lower.split_whitespace() {
-            *word_counts.entry(word).or_insert(0) += 1;
+            if !word.is_empty() {
+                *word_counts.entry(word).or_insert(0) += 1;
+                total_words += 1;
+            }
         }
 
-        for (word, count) in word_counts {
-            if let Some(&idx) = self.vocab.get(word) {
-                vector[idx] = count as f32 * self.idf[idx];
+        // Apply CORRECTED TF-IDF with proper normalization
+        if total_words > 0 {
+            for (word, count) in word_counts {
+                if let Some(&idx) = self.vocab.get(word) {
+                    if idx < 5000 {
+                        // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
+                        let tf = count as f32 / total_words as f32;  // Term Frequency normalization
+                        vector[idx] = tf * self.idf[idx];            // Correct TF-IDF calculation
+                    }
+                }
             }
         }
 
