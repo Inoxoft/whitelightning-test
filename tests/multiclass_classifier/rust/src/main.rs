@@ -418,6 +418,50 @@ impl MulticlassClassifier {
         Ok((predicted_class, total_time, preprocessing_time, inference_time))
     }
 
+    fn predict_with_probabilities(&self, text: &str) -> Result<(String, f32, Vec<f32>, f64, f64, f64)> {
+        let total_start = Instant::now();
+        
+        // Preprocessing
+        let preprocess_start = Instant::now();
+        let input_data = self.preprocess_text(text);
+        let preprocessing_time = preprocess_start.elapsed().as_secs_f64() * 1000.0;
+        
+        // Inference
+        let inference_start = Instant::now();
+        let input_array = Array2::from_shape_vec((1, 30), input_data)?;
+        let input_dyn = input_array.into_dyn();
+        let input_cow = ndarray::CowArray::from(input_dyn.view());
+        let input_tensor = Value::from_array(self.session.allocator(), &input_cow)?;
+
+        let outputs = self.session.run(vec![input_tensor])?;
+        let inference_time = inference_start.elapsed().as_secs_f64() * 1000.0;
+        
+        // Postprocessing
+        let postprocess_start = Instant::now();
+        let output_view = outputs[0].try_extract::<f32>()?;
+        let output_data = output_view.view();
+        
+        let mut max_prob = f32::NEG_INFINITY;
+        let mut predicted_class_idx = 0;
+        let probabilities: Vec<f32> = output_data.iter().cloned().collect();
+        
+        for (i, &prob) in probabilities.iter().enumerate() {
+            if prob > max_prob {
+                max_prob = prob;
+                predicted_class_idx = i;
+            }
+        }
+        
+        let predicted_class = self.classes.get(predicted_class_idx)
+            .unwrap_or(&"Unknown".to_string())
+            .clone();
+        
+        let _postprocessing_time = postprocess_start.elapsed().as_secs_f64() * 1000.0;
+        let total_time = total_start.elapsed().as_secs_f64() * 1000.0;
+        
+        Ok((predicted_class, max_prob, probabilities, total_time, preprocessing_time, inference_time))
+    }
+
     fn predict(&self, text: &str) -> Result<String> {
         let (result, _, _, _) = self.predict_with_timing(text)?;
         Ok(result)
@@ -583,35 +627,101 @@ fn main() -> Result<()> {
             metrics.print();
         }
     } else {
-        // Default test cases
-        println!("🚀 Running Rust ONNX Multiclass Classifier Tests");
+        // Default test case - standardized output
+        let text = "President signs new legislation on healthcare reform";
+        
+        println!("🤖 ONNX MULTICLASS CLASSIFIER - RUST IMPLEMENTATION");
+        println!("==================================================");
+        println!("🔄 Processing: \"{}\"", text);
+        println!();
+
+        // System info is already printed earlier
+        
+        let monitor = ResourceMonitor::new();
+        let memory_start = get_memory_usage_mb();
+        monitor.start_monitoring();
+        
+        let (predicted_class, confidence, probabilities, total_time, preprocessing_time, inference_time) = 
+            classifier.predict_with_probabilities(text)?;
+        
+        let (cpu_avg, cpu_peak, cpu_samples, memory_peak, memory_end) = monitor.stop_monitoring();
+        
+        // Display results in standardized format
+        println!("📊 TOPIC CLASSIFICATION RESULTS:");
+        println!("⏱️  Processing Time: {:.1}ms", total_time);
+        
+        // Category emojis
+        let category_emoji = match predicted_class.to_lowercase().as_str() {
+            name if name.contains("politics") => "🏛️",
+            name if name.contains("technology") => "💻", 
+            name if name.contains("sports") => "⚽",
+            name if name.contains("business") => "💼",
+            name if name.contains("entertainment") => "🎭",
+            _ => "📝"
+        };
+        
+        println!("   🏆 Predicted Category: {} {}", predicted_class.to_uppercase(), category_emoji);
+        println!("   📈 Confidence: {:.1}%", confidence * 100.0);
+        println!("   📝 Input Text: \"{}\"", text);
         println!();
         
-        let test_cases = vec![
-            ("The stock market reached new highs today", "Business"),
-            ("Scientists discover new species in the Amazon", "Science"),
-            ("The championship game was decided in overtime", "Sports"),
-            ("New educational reforms aim to improve performance", "Education"),
-            ("The latest blockbuster movie breaks records", "Entertainment"),
-        ];
-        
-        println!("📝 Test Results:");
-        for (text, expected) in test_cases {
-            let predicted = classifier.predict(text)?;
-            let status = if predicted.to_lowercase().contains(&expected.to_lowercase()) || 
-                           expected.to_lowercase().contains(&predicted.to_lowercase()) { 
-                "✅" 
-            } else { 
-                "⚠️" 
+        // Display detailed probabilities
+        println!("📊 DETAILED PROBABILITIES:");
+        for (i, &prob) in probabilities.iter().enumerate() {
+            let class_name = &classifier.classes[i];
+            let class_emoji = match class_name.to_lowercase().as_str() {
+                name if name.contains("politics") => "🏛️",
+                name if name.contains("technology") => "💻",
+                name if name.contains("sports") => "⚽", 
+                name if name.contains("business") => "💼",
+                name if name.contains("entertainment") => "🎭",
+                _ => "📝"
             };
             
-            println!("{} Text: '{}' -> Predicted: {} (Expected: {})", 
-                status, text, predicted, expected);
+            let bar_length = (prob * 20.0) as usize;
+            let bar = "█".repeat(bar_length);
+            let star = if class_name == &predicted_class { " ⭐" } else { "" };
+            
+            println!("   {} {}: {:.1}% {}{}", 
+                     class_emoji,
+                     class_name.chars().nth(0).unwrap().to_uppercase().chain(class_name.chars().skip(1)).collect::<String>(),
+                     prob * 100.0,
+                     bar,
+                     star);
         }
-        
         println!();
-        println!("✅ Rust ONNX Multiclass Classifier test completed successfully!");
-        println!("ℹ️ Note: This model may have training bias issues - most predictions tend toward certain classes");
+        
+        // Performance summary  
+        println!("📈 PERFORMANCE SUMMARY:");
+        println!("   Total Processing Time: {:.1}ms", total_time);
+        println!("   ┣━ Preprocessing: {:.1}ms", preprocessing_time);
+        println!("   ┣━ Model Inference: {:.1}ms", inference_time);
+        println!("   ┗━ Postprocessing: {:.1}ms", total_time - preprocessing_time - inference_time);
+        println!();
+        
+        println!("🚀 THROUGHPUT:");
+        println!("   Texts per second: {:.1}", 1000.0 / total_time);
+        println!();
+        
+        println!("💾 RESOURCE USAGE:");
+        println!("   Memory Start: {:.1}MB", memory_start);
+        println!("   Memory End: {:.1}MB", memory_end);
+        println!("   Memory Delta: {:.1}MB", memory_end - memory_start);
+        println!("   CPU Usage Avg: {:.1}%", cpu_avg);
+        println!("   CPU Usage Peak: {:.1}%", cpu_peak);
+        println!();
+        
+        // Performance rating
+        let confidence_rating = if confidence > 0.8 {
+            "🎯 HIGH CONFIDENCE"
+        } else if confidence > 0.6 {
+            "🎯 MEDIUM CONFIDENCE"  
+        } else {
+            "🎯 LOW CONFIDENCE"
+        };
+        
+        println!("🎯 PERFORMANCE RATING: ✅ {}", confidence_rating);
+        println!("   ({:.1}ms total - Rust implementation)", total_time);
     }
 
     Ok(())

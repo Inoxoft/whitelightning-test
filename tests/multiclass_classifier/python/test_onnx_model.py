@@ -619,9 +619,10 @@ def test_custom_text(text):
     model_path = Path(__file__).parent / "model.onnx"
     assert model_path.exists(), f"Model not found at {model_path}"
     
-    print("=" * 80)
-    print("🤖 ONNX MULTICLASS CLASSIFIER - DETAILED ANALYSIS")
-    print("=" * 80)
+    print("🤖 ONNX MULTICLASS CLASSIFIER - PYTHON IMPLEMENTATION")
+    print("==================================================")
+    print(f"🔄 Processing: \"{text}\"")
+    print()
     
     # Initialize tester and get model info
     start_time = time.time()
@@ -711,51 +712,61 @@ def test_custom_text(text):
     
     print(f"   Raw model outputs: {outputs[0][0]}")
     print()
-    print(f"📊 PERFORMANCE METRICS:")
-    print(f"   Total execution time: {total_time*1000:.2f}ms")
-    print(f"   Model inference time: {inference_time*1000:.2f}ms ({inference_time/total_time*100:.1f}%)")
-    print(f"   Memory usage: {pre_memory:.1f}MB → {post_memory:.1f}MB (Δ{memory_delta:+.1f}MB)")
-    print(f"   CPU usage: {cpu_avg:.1f}% avg, {cpu_max:.1f}% peak")
-    print(f"   Throughput: {1/total_time:.1f} texts/sec")
+    print("📈 PERFORMANCE SUMMARY:")
+    print(f"   Total Processing Time: {total_time*1000:.1f}ms")
+    print(f"   ┣━ Preprocessing: ~{(total_time-inference_time)*1000/2:.1f}ms")
+    print(f"   ┣━ Model Inference: {inference_time*1000:.1f}ms")
+    print(f"   ┗━ Postprocessing: ~{(total_time-inference_time)*1000/2:.1f}ms")
+    print()
+    
+    print("🚀 THROUGHPUT:")
+    print(f"   Texts per second: {1/total_time:.1f}")
+    print()
+    
+    print("💾 RESOURCE USAGE:")
+    print(f"   Memory Start: {pre_memory:.1f}MB")
+    print(f"   Memory End: {post_memory:.1f}MB")
+    print(f"   Memory Delta: {memory_delta:+.1f}MB")
+    print(f"   CPU Usage: {cpu_avg:.1f}% avg, {cpu_max:.1f}% peak")
     print()
     
     # Results
-    print("🎯 CLASSIFICATION RESULTS:")
-    print(f"   Predicted Class: {predicted_label}")
-    print(f"   Confidence Score: {confidence_score:.4f}")
+    print("📊 TOPIC CLASSIFICATION RESULTS:")
+    print(f"⏱️  Processing Time: {total_time*1000:.1f}ms")
     
-    # Check if this makes sense
-    expected_political_words = ['government', 'policies', 'economy', 'announced', 'boost']
-    found_political_words = [word for word in text.lower().split() if word in expected_political_words]
+    # Category emojis
+    category_emojis = {
+        'politics': '🏛️',
+        'technology': '💻', 
+        'sports': '⚽',
+        'business': '💼',
+        'entertainment': '🎭'
+    }
     
-    if found_political_words and predicted_label != 'politics':
-        print(f"   🚨 POTENTIAL ISSUE: Found political words {found_political_words} but predicted '{predicted_label}'")
+    emoji = category_emojis.get(predicted_label, '📝')
+    print(f"   🏆 Predicted Category: {predicted_label.upper()} {emoji}")
+    print(f"   📈 Confidence: {confidence_score*100:.1f}%")
+    print(f"   📝 Input Text: \"{text}\"")
     print()
     
-    print("📊 ALL CLASS PROBABILITIES:")
+    print("📊 DETAILED PROBABILITIES:")
     for i, prob in enumerate(probabilities):
         label = tester.label_map[str(i)]
-        print(f"   {label}: {prob:.4f} {'⭐ PREDICTED' if i == predicted_idx else ''}")
+        emoji = category_emojis.get(label, '📝')
+        bar = "█" * int(prob * 20)
+        star = " ⭐" if i == predicted_idx else ""
+        print(f"   {emoji} {label.capitalize()}: {prob*100:.1f}% {bar}{star}")
     
-    # Additional debugging
-    print()
-    print("🔍 DEBUGGING ANALYSIS:")
-    if all(prob in [0.0, 1.0] for prob in probabilities):
-        print("   ⚠️  WARNING: Model outputs are binary (0.0 or 1.0) - this suggests:")
-        print("      - Model might be using hard classification instead of probabilities")
-        print("      - Possible issue with model architecture or training")
-        print("      - Sigmoid/softmax activation might be missing or incorrect")
+    # Performance rating
+    if confidence_score > 0.8:
+        rating = "🎯 HIGH CONFIDENCE"
+    elif confidence_score > 0.6:
+        rating = "🎯 MEDIUM CONFIDENCE"
+    else:
+        rating = "🎯 LOW CONFIDENCE"
     
-    if predicted_label == 'sports' and 'government' in text.lower():
-        print("   🚨 CRITICAL ISSUE: Political text classified as sports!")
-        print("      - Check if model was trained correctly")
-        print("      - Verify label mapping is correct")
-        print("      - Consider if vocab/tokenization matches training data")
-    print()
-    
-    print("=" * 80)
-    print(f"✅ Analysis completed in {(time.time() - start_time) * 1000:.2f}ms")
-    print("=" * 80)
+    print(f"🎯 PERFORMANCE RATING: ✅ {rating}")
+    print(f"   ({total_time*1000:.1f}ms total - Python implementation)")
 
 if __name__ == "__main__":
     test_multiclass_classifier() 

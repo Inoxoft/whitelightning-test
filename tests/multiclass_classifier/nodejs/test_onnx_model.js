@@ -299,17 +299,33 @@ async function testSingleText(text) {
         stopCpuMonitoring(resources);
         
         // Display results
-        console.log('📊 MULTICLASS CLASSIFICATION RESULTS:');
-        console.log(`   🏆 Predicted Category: ${predictedLabel}`);
-        console.log(`   📈 Confidence: ${(maxConfidence * 100).toFixed(2)}% (${maxConfidence.toFixed(4)})`);
+        console.log('📊 TOPIC CLASSIFICATION RESULTS:');
+        console.log(`⏱️  Processing Time: ${timing.totalTimeMs.toFixed(1)}ms`);
+        
+        // Category emojis
+        const categoryEmojis = {
+            'politics': '🏛️',
+            'technology': '💻',
+            'sports': '⚽',
+            'business': '💼',
+            'entertainment': '🎭'
+        };
+        
+        const emoji = categoryEmojis[predictedLabel] || '📝';
+        console.log(`   🏆 Predicted Category: ${predictedLabel.toUpperCase()} ${emoji}`);
+        console.log(`   📈 Confidence: ${(maxConfidence * 100).toFixed(1)}%`);
         console.log(`   📝 Input Text: "${text}"`);
+        console.log();
         
         // Show all class probabilities
-        console.log('   📋 All Class Probabilities:');
+        console.log('📊 DETAILED PROBABILITIES:');
         for (let i = 0; i < output.length; i++) {
             const className = labelMap[i.toString()];
             const probability = output[i];
-            console.log(`      ${className}: ${probability.toFixed(4)} (${(probability * 100).toFixed(1)}%)`);
+            const categoryEmoji = categoryEmojis[className] || '📝';
+            const bar = '█'.repeat(Math.floor(probability * 20));
+            const star = (i === predictedIdx) ? ' ⭐' : '';
+            console.log(`   ${categoryEmoji} ${className.charAt(0).toUpperCase() + className.slice(1)}: ${(probability * 100).toFixed(1)}% ${bar}${star}`);
         }
         console.log();
         

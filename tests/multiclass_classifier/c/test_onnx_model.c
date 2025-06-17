@@ -436,19 +436,11 @@ int test_single_text(const char* text, const char* model_path, const char* vocab
     float max_prob = output_data[0];
     int num_classes = cJSON_GetArraySize(label_map);
     
-    printf("🎯 CLASS PROBABILITIES:\n");
+    // Find predicted class first
     for (int i = 0; i < num_classes; i++) {
-        char idx_str[16];
-        snprintf(idx_str, sizeof(idx_str), "%d", i);
-        cJSON* label = cJSON_GetObjectItem(label_map, idx_str);
-        if (label) {
-            printf("   %s: %.4f", label->valuestring, output_data[i]);
-            if (output_data[i] > max_prob) {
-                max_prob = output_data[i];
-                predicted_idx = i;
-                printf(" ⭐");
-            }
-            printf("\n");
+        if (output_data[i] > max_prob) {
+            max_prob = output_data[i];
+            predicted_idx = i;
         }
     }
 
@@ -468,10 +460,59 @@ int test_single_text(const char* text, const char* model_path, const char* vocab
     stop_cpu_monitoring(&resources);
     
     // Display results
-    printf("\n📊 CLASSIFICATION RESULT:\n");
+    printf("📊 TOPIC CLASSIFICATION RESULTS:\n");
+    printf("⏱️  Processing Time: %.1fms\n", timing.total_time_ms);
+    
+    // Category emojis
+    const char* category_emoji(const char* category) {
+        if (strcmp(category, "politics") == 0) return "🏛️";
+        if (strcmp(category, "technology") == 0) return "💻";
+        if (strcmp(category, "sports") == 0) return "⚽";
+        if (strcmp(category, "business") == 0) return "💼";
+        if (strcmp(category, "entertainment") == 0) return "🎭";
+        return "📝";
+    }
+    
     if (predicted_label) {
-        printf("   🏆 Predicted Class: %s\n", predicted_label->valuestring);
-        printf("   📈 Confidence: %.2f%% (%.4f)\n", max_prob * 100.0, max_prob);
+        char category_upper[256];
+        strcpy(category_upper, predicted_label->valuestring);
+        for (int i = 0; category_upper[i]; i++) {
+            category_upper[i] = toupper(category_upper[i]);
+        }
+        
+        printf("   🏆 Predicted Category: %s %s\n", category_upper, category_emoji(predicted_label->valuestring));
+        printf("   📈 Confidence: %.1f%%\n", max_prob * 100.0);
+        printf("   📝 Input Text: \"%s\"\n", text);
+        printf("\n");
+    }
+    
+    printf("📊 DETAILED PROBABILITIES:\n");
+    for (int i = 0; i < num_classes; i++) {
+        char idx_str[16];
+        snprintf(idx_str, sizeof(idx_str), "%d", i);
+        cJSON* label = cJSON_GetObjectItem(label_map, idx_str);
+        if (label) {
+            char class_display[256];
+            strcpy(class_display, label->valuestring);
+            if (class_display[0]) {
+                class_display[0] = toupper(class_display[0]);
+            }
+            
+            // Create progress bar
+            int bar_length = (int)(output_data[i] * 20);
+            char bar[21] = {0};
+            for (int j = 0; j < bar_length && j < 20; j++) {
+                bar[j] = '█';
+            }
+            
+            const char* star = (i == predicted_idx) ? " ⭐" : "";
+            printf("   %s %s: %.1f%% %s%s\n", 
+                   category_emoji(label->valuestring),
+                   class_display,
+                   output_data[i] * 100.0,
+                   bar,
+                   star);
+        }
     }
     printf("\n");
     

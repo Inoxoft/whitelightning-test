@@ -374,19 +374,49 @@ int test_single_text(const std::string& text, const std::string& model_path,
         stop_cpu_monitoring(resources);
         
         // Display results
-        std::cout << "📊 MULTICLASS CLASSIFICATION RESULTS:\n";
-        std::cout << "   🏆 Predicted Category: " << predicted_label << "\n";
-        std::cout << "   📈 Confidence: " << std::fixed << std::setprecision(2) << confidence * 100.0 
-                  << "% (" << std::setprecision(4) << confidence << ")\n";
-        std::cout << "   📝 Input Text: \"" << text << "\"\n";
+        std::cout << "📊 TOPIC CLASSIFICATION RESULTS:\n";
+        std::cout << "⏱️  Processing Time: " << std::fixed << std::setprecision(1) << timing.total_time_ms << "ms\n";
+        
+        // Category emojis
+        std::map<std::string, std::string> category_emojis = {
+            {"politics", "🏛️"},
+            {"technology", "💻"},
+            {"sports", "⚽"},
+            {"business", "💼"},
+            {"entertainment", "🎭"}
+        };
+        
+        std::string emoji = category_emojis.find(predicted_label) != category_emojis.end() ? 
+                           category_emojis[predicted_label] : "📝";
+        
+        // Capitalize category name
+        std::string category_upper = predicted_label;
+        std::transform(category_upper.begin(), category_upper.end(), category_upper.begin(), ::toupper);
+        
+        std::cout << "   🏆 Predicted Category: " << category_upper << " " << emoji << "\n";
+        std::cout << "   📈 Confidence: " << std::setprecision(1) << confidence * 100.0 << "%\n";
+        std::cout << "   📝 Input Text: \"" << text << "\"\n\n";
         
         // Show all class probabilities
-        std::cout << "   📋 All Class Probabilities:\n";
+        std::cout << "📊 DETAILED PROBABILITIES:\n";
         for (size_t i = 0; i < output_size; i++) {
             std::string class_name = label_map[std::to_string(i)];
             float probability = output_data[i];
-            std::cout << "      " << class_name << ": " << std::setprecision(4) << probability 
-                      << " (" << std::setprecision(1) << probability * 100.0 << "%)\n";
+            std::string class_emoji = category_emojis.find(class_name) != category_emojis.end() ? 
+                                    category_emojis[class_name] : "📝";
+            
+            // Capitalize first letter
+            std::string class_display = class_name;
+            if (!class_display.empty()) {
+                class_display[0] = std::toupper(class_display[0]);
+            }
+            
+            // Create progress bar
+            std::string bar(static_cast<int>(probability * 20), '█');
+            std::string star = (static_cast<int>(i) == predicted_idx) ? " ⭐" : "";
+            
+            std::cout << "   " << class_emoji << " " << class_display << ": " 
+                      << std::setprecision(1) << probability * 100.0 << "% " << bar << star << "\n";
         }
         std::cout << "\n";
         

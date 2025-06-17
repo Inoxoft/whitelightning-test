@@ -190,17 +190,38 @@ public class MulticlassClassifierTest {
             stopCpuMonitoring(resources);
             
             // Display results
-            System.out.println("📊 MULTICLASS CLASSIFICATION RESULTS:");
-            System.out.printf("   🏆 Predicted Category: %s%n", predictedLabel);
-            System.out.printf("   📈 Confidence: %.2f%% (%.4f)%n", maxConfidence * 100.0, maxConfidence);
+            System.out.println("📊 TOPIC CLASSIFICATION RESULTS:");
+            System.out.printf("⏱️  Processing Time: %.1fms%n", timing.totalTimeMs);
+            
+            // Category emojis
+            Map<String, String> categoryEmojis = Map.of(
+                "politics", "🏛️",
+                "technology", "💻",
+                "sports", "⚽",
+                "business", "💼",
+                "entertainment", "🎭"
+            );
+            
+            String emoji = categoryEmojis.getOrDefault(predictedLabel, "📝");
+            System.out.printf("   🏆 Predicted Category: %s %s%n", predictedLabel.toUpperCase(), emoji);
+            System.out.printf("   📈 Confidence: %.1f%%%n", maxConfidence * 100.0);
             System.out.printf("   📝 Input Text: \"%s\"%n", text);
+            System.out.println();
             
             // Show all class probabilities
-            System.out.println("   📋 All Class Probabilities:");
+            System.out.println("📊 DETAILED PROBABILITIES:");
             for (int i = 0; i < output.length; i++) {
                 String className = labelMap.get(String.valueOf(i)).asText();
                 float probability = output[i];
-                System.out.printf("      %s: %.4f (%.1f%%)%n", className, probability, probability * 100.0);
+                String emoji = categoryEmojis.getOrDefault(className, "📝");
+                String bar = "█".repeat((int)(probability * 20));
+                String star = (i == predictedIdx) ? " ⭐" : "";
+                System.out.printf("   %s %s: %.1f%% %s%s%n", 
+                    emoji, 
+                    className.substring(0, 1).toUpperCase() + className.substring(1),
+                    probability * 100.0, 
+                    bar,
+                    star);
             }
             System.out.println();
             
