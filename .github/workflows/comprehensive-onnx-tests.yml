@@ -1,10 +1,6 @@
 name: Comprehensive ONNX Tests (All Languages & Models)
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
