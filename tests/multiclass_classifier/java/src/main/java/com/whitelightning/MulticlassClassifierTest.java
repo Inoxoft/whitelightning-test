@@ -213,11 +213,11 @@ public class MulticlassClassifierTest {
             for (int i = 0; i < output.length; i++) {
                 String className = labelMap.get(String.valueOf(i)).asText();
                 float probability = output[i];
-                String emoji = categoryEmojis.getOrDefault(className, "📝");
+                String classEmoji = categoryEmojis.getOrDefault(className, "📝");
                 String bar = "█".repeat((int)(probability * 20));
                 String star = (i == predictedIdx) ? " ⭐" : "";
                 System.out.printf("   %s %s: %.1f%% %s%s%n", 
-                    emoji, 
+                    classEmoji, 
                     className.substring(0, 1).toUpperCase() + className.substring(1),
                     probability * 100.0, 
                     bar,

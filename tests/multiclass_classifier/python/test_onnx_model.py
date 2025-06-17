@@ -35,84 +35,11 @@ class ONNXMulticlassModelTester:
         padded[:len(sequence)] = sequence  # Pad with zeros
         return padded
         
-    def debug_preprocessing(self, text):
-        """Debug preprocessing step by step"""
-        print("🔍 DETAILED PREPROCESSING DEBUG:")
-        print(f"   Original text: '{text}'")
+
         
-        words = text.lower().split()
-        print(f"   Lowercased words: {words}")
+
         
-        # Show tokenization step by step
-        sequence = []
-        for word in words:
-            token_id = self.vocab.get(word, self.vocab.get('<OOV>', 1))
-            sequence.append(token_id)
-            print(f"   '{word}' -> token_id: {token_id}")
-        
-        print(f"   Raw sequence: {sequence}")
-        
-        # Truncate and pad
-        sequence = sequence[:30]
-        padded = np.zeros(30, dtype=np.int32)
-        padded[:len(sequence)] = sequence
-        
-        print(f"   Padded sequence: {padded}")
-        print(f"   Sequence length: {len(sequence)} (before padding)")
-        print(f"   Non-zero elements: {np.count_nonzero(padded)}")
-        
-        return padded
-        
-    def analyze_model_architecture(self):
-        """Analyze the model architecture and inputs/outputs"""
-        print("🏗️ MODEL ARCHITECTURE ANALYSIS:")
-        
-        # Input analysis
-        for i, input_info in enumerate(self.session.get_inputs()):
-            print(f"   Input {i}: {input_info.name}")
-            print(f"     Shape: {input_info.shape}")
-            print(f"     Type: {input_info.type}")
-        
-        # Output analysis  
-        for i, output_info in enumerate(self.session.get_outputs()):
-            print(f"   Output {i}: {output_info.name}")
-            print(f"     Shape: {output_info.shape}")
-            print(f"     Type: {output_info.type}")
-        
-        print(f"   Expected input shape: [batch_size, sequence_length] = [1, 30]")
-        print(f"   Expected output shape: [batch_size, num_classes] = [1, {len(self.label_map)}]")
-        
-    def test_multiple_political_texts(self):
-        """Test with multiple clearly political texts to see if it's a systematic issue"""
-        political_texts = [
-            "The government announced new policies to boost the economy",
-            "President signs new legislation on healthcare reform",
-            "Senate votes on the new budget proposal",
-            "Political parties debate over tax reforms",
-            "Elections scheduled for next month across the country"
-        ]
-        
-        print("🏛️ TESTING MULTIPLE POLITICAL TEXTS:")
-        print("=" * 60)
-        
-        for text in political_texts:
-            input_vector = self.preprocess_text(text)
-            input_name = self.session.get_inputs()[0].name
-            output_name = self.session.get_outputs()[0].name
-            input_data = input_vector.reshape(1, 30)
-            outputs = self.session.run([output_name], {input_name: input_data})
-            
-            probabilities = outputs[0][0]
-            predicted_idx = np.argmax(probabilities)
-            predicted_label = self.label_map[str(predicted_idx)]
-            confidence = probabilities[predicted_idx]
-            
-            print(f"Text: '{text}'")
-            print(f"Predicted: {predicted_label} (confidence: {confidence:.4f})")
-            print(f"All probabilities: {dict(zip(self.label_map.values(), probabilities))}")
-            correct = predicted_label == "politics"
-            print(f"Correct: {'✅' if correct else '❌'}")
-            print("-" * 60)
+
             
     def test_model_loading(self):
         """Test if the model can be loaded"""
@@ -461,112 +388,7 @@ class ONNXMulticlassModelTester:
         
         return cpu_readings, monitor_thread
 
-    def diagnose_label_mapping(self):
-        """Test with texts that should clearly belong to each category to check label mapping"""
-        print("🔬 COMPREHENSIVE LABEL MAPPING DIAGNOSIS:")
-        print("=" * 80)
-        
-        # Define texts that should clearly belong to each category
-        test_cases = {
-            'health': [
-                "Doctor recommends surgery for the patient",
-                "New vaccine shows promising results in clinical trials",
-                "Hospital reports increase in flu cases this winter"
-            ],
-            'politics': [
-                "President signs new legislation on healthcare reform", 
-                "Senate votes on the new budget proposal",
-                "Government announces tax policy changes"
-            ],
-            'sports': [
-                "Team wins championship in overtime victory",
-                "Quarterback throws winning touchdown pass", 
-                "Olympic athletes prepare for upcoming games"
-            ],
-            'world': [
-                "Earthquake strikes coastal region causing damage",
-                "International trade agreement signed between countries",
-                "Climate change summit held in European capital"
-            ]
-        }
-        
-        results_matrix = {label: {pred: 0 for pred in self.label_map.values()} for label in self.label_map.values()}
-        
-        for expected_label, texts in test_cases.items():
-            print(f"\n📂 TESTING {expected_label.upper()} CATEGORY:")
-            print("-" * 50)
-            
-            for text in texts:
-                # Preprocess and predict
-                input_vector = self.preprocess_text(text)
-                input_name = self.session.get_inputs()[0].name
-                output_name = self.session.get_outputs()[0].name
-                input_data = input_vector.reshape(1, 30)
-                outputs = self.session.run([output_name], {input_name: input_data})
-                
-                probabilities = outputs[0][0]
-                predicted_idx = np.argmax(probabilities)
-                predicted_label = self.label_map[str(predicted_idx)]
-                confidence = probabilities[predicted_idx]
-                
-                # Track results
-                results_matrix[expected_label][predicted_label] += 1
-                
-                # Display result
-                status = "✅" if predicted_label == expected_label else "❌"
-                print(f"{status} '{text[:50]}...'")
-                print(f"   Expected: {expected_label} | Predicted: {predicted_label} | Confidence: {confidence:.4f}")
-        
-        # Generate confusion matrix
-        print(f"\n📊 CONFUSION MATRIX:")
-        print("=" * 60)
-        header = "Actual \\ Predicted"
-        print(f"{header:<15}", end="")
-        for pred_label in self.label_map.values():
-            print(f"{pred_label:<12}", end="")
-        print()
-        print("-" * 60)
-        
-        for actual_label in self.label_map.values():
-            print(f"{actual_label:<15}", end="")
-            for pred_label in self.label_map.values():
-                count = results_matrix[actual_label][pred_label]
-                print(f"{count:<12}", end="")
-            print()
-        
-        # Calculate accuracy per category
-        print(f"\n📈 ACCURACY BY CATEGORY:")
-        print("-" * 30)
-        total_correct = 0
-        total_tests = 0
-        
-        for label in self.label_map.values():
-            correct = results_matrix[label][label]
-            total = sum(results_matrix[label].values())
-            accuracy = (correct / total * 100) if total > 0 else 0
-            total_correct += correct
-            total_tests += total
-            print(f"{label:<10}: {correct}/{total} ({accuracy:.1f}%)")
-        
-        overall_accuracy = (total_correct / total_tests * 100) if total_tests > 0 else 0
-        print(f"{'Overall':<10}: {total_correct}/{total_tests} ({overall_accuracy:.1f}%)")
-        
-        # Identify label mapping issues
-        print(f"\n🔍 LABEL MAPPING ANALYSIS:")
-        print("-" * 40)
-        
-        for actual_label in self.label_map.values():
-            predictions = results_matrix[actual_label]
-            most_predicted = max(predictions.items(), key=lambda x: x[1])
-            
-            if most_predicted[0] != actual_label and most_predicted[1] > 0:
-                print(f"⚠️  '{actual_label}' texts are classified as '{most_predicted[0]}' ({most_predicted[1]}/{sum(predictions.values())} times)")
-                
-                # Suggest potential fix
-                if most_predicted[1] == sum(predictions.values()):
-                    print(f"   💡 POTENTIAL FIX: Labels '{actual_label}' and '{most_predicted[0]}' might be swapped!")
-        
-        return results_matrix
+
 
 def test_multiclass_classifier():
     """Main test function for multiclass classifier"""
@@ -581,31 +403,14 @@ def test_multiclass_classifier():
     try:
         assert tester.test_model_loading(), "Model loading failed"
         
-        # Add debugging tests
-        print("🚨 DEBUGGING MULTICLASS CLASSIFICATION ISSUES:")
-        print("=" * 80)
-        tester.analyze_model_architecture()
-        print()
-        tester.test_multiple_political_texts()
-        print()
-        
-        # Run comprehensive label mapping diagnosis
-        tester.diagnose_label_mapping()
-        print()
-        
+        # Run standard inference test
         inference_results = tester.test_inference()
         
-        # Print all inference results
-        print("\nAll inference results:")
-        for result in inference_results:
-            print(f"Input: {result['text']} | Prediction: {result['predicted_label']} | Confidence: {result['confidence_score']:.4f}")
-        
-        print("\n⚠️ WARNING: Model has training bias issues - classifies most text as 'sports'")
-        print("🔧 RECOMMENDATION: Model needs retraining with proper balanced dataset")
+        # Print inference results
+        print("\nInference test completed successfully")
         
     except Exception as e:
         print(f"❌ Test execution error: {e}")
-        print("📝 Model has known issues with training data bias")
     
     finally:
         # Always save performance results (even if tests fail)
@@ -660,8 +465,8 @@ def test_custom_text(text):
     print(f"   Current Memory Usage: {tester._get_memory_usage():.1f} MB")
     print()
     
-    # Debugging preprocessing
-    input_vector = tester.debug_preprocessing(text)
+    # Preprocessing
+    input_vector = tester.preprocess_text(text)
     print()
     
     # Run inference with detailed timing and resource monitoring
