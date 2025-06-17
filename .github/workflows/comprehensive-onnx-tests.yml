@@ -79,9 +79,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libcjson-dev wget
+          
+      - name: Download and setup ONNX Runtime for C
+        if: matrix.language == 'c'
+        run: |
+          # Download ONNX Runtime for Linux
           wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-linux-x64-1.22.0.tgz
           tar -xzf onnxruntime-linux-x64-1.22.0.tgz
-          # Create symlink for consistent path
+          
+          # Create symlink for consistent path across implementations
           cd tests/${{ matrix.model_type }}/c
           ln -sf ../../../onnxruntime-linux-x64-1.22.0 onnxruntime-osx-universal2-1.22.0
           
@@ -222,36 +228,27 @@ jobs:
               ;;
               
             "c")
+              # Set up library path for ONNX Runtime (from root directory)
               export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               echo "🔨 Building C implementation..."
+              echo "📍 Working directory: $(pwd)"
               echo "🔗 Library path: $LD_LIBRARY_PATH"
-              if make clean && make; then
-                echo "🔗 Setting up runtime library path..."
-                export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
-                echo "📚 Available libraries:"
-                ls -la onnxruntime-linux-x64-1.22.0/lib/
-                if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                  if [ -n "$CUSTOM_TEXT" ]; then
-                    echo "Testing custom text: $CUSTOM_TEXT"
-                    LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH ./test_onnx_model "$CUSTOM_TEXT"
-                  else
-                    echo "Running default test suite..."
-                    LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH ./test_onnx_model
-                  fi
+              make clean
+              make
+              
+              echo "🚀 Running C tests..."
+              # Check if model files exist
+              if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
+                if [ -n "$CUSTOM_TEXT" ]; then
+                  echo "Testing custom text: $CUSTOM_TEXT"
+                  ./test_onnx_model "$CUSTOM_TEXT"
                 else
-                  echo "⚠️ Model files not found, running CI build verification..."
-                  echo "✅ C implementation compiled successfully"
-                  echo "🏗️ Build verification completed"
-                  echo "🧪 Testing library linkage..."
-                  LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH ldd ./test_onnx_model || echo "Library check failed"
+                  echo "Running default test suite..."
+                  ./test_onnx_model
                 fi
               else
-                echo "❌ C build failed - checking for missing dependencies..."
-                echo "🔍 Available files:"
-                ls -la
-                echo "🔍 ONNX Runtime library:"
-                ls -la onnxruntime-linux-x64-1.22.0/lib/ || echo "Library not found"
-                exit 1
+                echo "⚠️ Model files not found, running CI build verification..."
+                make test-ci
               fi
               ;;
               
