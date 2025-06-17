@@ -60,8 +60,8 @@ Every test run provides standardized output in this format:
 
 ## 🎯 Standard Test Inputs
 
-- **Binary Classifier**: `"It was very bad purchase"` (sentiment analysis)
-- **Multiclass Classifier**: `"President signs new legislation on healthcare reform"` (topic classification)
+- **Binary Classifier**: `"It was very bad purchase"` (spam analysis)
+- **Multiclass Classifier**: `"President signs new legislation on healthcare reform"` (news topic classification)
 
 ## 🛠️ Supported Languages
 
