@@ -833,7 +833,7 @@ jobs:
           else
             echo "🧪 Running standard test suite..."
           fi
-          flutter test
+          flutter test --verbose --reporter expanded
           
       - name: Test Multiclass Classifier  
         if: ${{ inputs.model_type == '' || contains(inputs.model_type, 'multiclass_classifier') }}
@@ -850,7 +850,7 @@ jobs:
           else
             echo "🧪 Running standard test suite..."
           fi
-          flutter test
+          flutter test --verbose --reporter expanded
 
 
 
