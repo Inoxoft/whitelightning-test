@@ -166,8 +166,11 @@ jobs:
               ;;
               
             "cpp")
-              export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               echo "🔨 Building C++ implementation..."
+              # Go back to root directory to export correct path
+              cd ../../..
+              export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
+              cd tests/${{ matrix.model_type }}/cpp
               make clean && make
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
                 echo "Running default test suite..."
@@ -179,16 +182,14 @@ jobs:
               ;;
               
             "c")
-              export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               echo "🔨 Building C implementation..."
+              # Go back to root directory to export correct path
+              cd ../../..
+              export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
+              cd tests/${{ matrix.model_type }}/c
               make clean && make
-              if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                echo "Running default test suite..."
-                ./test_onnx_model
-              else
-                echo "⚠️ Model files not found, running CI build verification..."
-                make test-ci || echo "Expected exit for missing model files"
-              fi
+              echo "Running default test suite..."
+              ./test_onnx_model
               ;;
               
             "nodejs")
