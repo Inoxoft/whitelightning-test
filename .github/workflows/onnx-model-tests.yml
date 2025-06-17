@@ -928,6 +928,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install ONNX Runtime for Linux (for testing only)
+        run: |
+          echo "🔧 Installing ONNX Runtime native libraries for Ubuntu..."
+          
+          # Download and install ONNX Runtime for Linux
+          ONNX_VERSION="1.16.0"
+          ONNX_URL="https://github.com/microsoft/onnxruntime/releases/download/v${ONNX_VERSION}/onnxruntime-linux-x64-${ONNX_VERSION}.tgz"
+          
+          echo "📦 Downloading ONNX Runtime v${ONNX_VERSION}..."
+          curl -L -o onnxruntime.tgz $ONNX_URL
+          
+          echo "📂 Extracting ONNX Runtime..."
+          tar -xzf onnxruntime.tgz
+          
+          # Set up library paths
+          ONNX_DIR="$(pwd)/onnxruntime-linux-x64-${ONNX_VERSION}"
+          echo "ONNXRUNTIME_ROOT_PATH=${ONNX_DIR}" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=${ONNX_DIR}/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          
+          # Copy libraries to system paths
+          sudo mkdir -p /usr/local/lib
+          sudo cp ${ONNX_DIR}/lib/* /usr/local/lib/ || echo "Some files may already exist"
+          sudo ldconfig  # Update library cache
+          
+          echo "✅ ONNX Runtime installation complete for Linux!"
+          echo "📁 Libraries installed in: /usr/local/lib"
+          ls -la /usr/local/lib/*onnx* || echo "ONNX libraries listed"
+      
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -1073,6 +1101,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install ONNX Runtime for macOS
+        run: |
+          echo "🔧 Installing ONNX Runtime native libraries for real inference..."
+          
+          # Download and install ONNX Runtime for macOS
+          ONNX_VERSION="1.16.0"
+          ONNX_URL="https://github.com/microsoft/onnxruntime/releases/download/v${ONNX_VERSION}/onnxruntime-osx-universal2-${ONNX_VERSION}.tgz"
+          
+          echo "📦 Downloading ONNX Runtime v${ONNX_VERSION}..."
+          curl -L -o onnxruntime.tgz $ONNX_URL
+          
+          echo "📂 Extracting ONNX Runtime..."
+          tar -xzf onnxruntime.tgz
+          
+          # Set up library paths
+          ONNX_DIR="$(pwd)/onnxruntime-osx-universal2-${ONNX_VERSION}"
+          echo "ONNXRUNTIME_ROOT_PATH=${ONNX_DIR}" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=${ONNX_DIR}/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=${ONNX_DIR}/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+          
+          # Copy libraries to system paths for Flutter to find
+          sudo mkdir -p /usr/local/lib
+          sudo cp ${ONNX_DIR}/lib/* /usr/local/lib/ || echo "Some files may already exist"
+          
+          # Verify installation
+          echo "✅ ONNX Runtime installation complete!"
+          echo "📁 Libraries installed in: /usr/local/lib"
+          ls -la /usr/local/lib/*onnx* || echo "ONNX libraries listed"
+          
+          # Set environment for subsequent steps
+          echo "🔧 Environment configured for real ONNX inference!"
+      
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -1107,6 +1167,30 @@ jobs:
             
             echo "✅ Flutter mobile setup complete - ready for ONNX testing!"
           fi
+          
+      - name: Verify ONNX Runtime Installation
+        run: |
+          echo "🔍 Verifying ONNX Runtime installation..."
+          
+          # Check if libraries are present
+          echo "📚 ONNX Runtime libraries:"
+          ls -la /usr/local/lib/*onnx* || echo "⚠️ ONNX libraries not found in /usr/local/lib"
+          
+          # Check environment variables
+          echo "🌍 Environment variables:"
+          echo "ONNXRUNTIME_ROOT_PATH: $ONNXRUNTIME_ROOT_PATH"
+          echo "DYLD_LIBRARY_PATH: $DYLD_LIBRARY_PATH"
+          
+          # Test library loading (basic check)
+          echo "🧪 Testing library access..."
+          if [ -f "/usr/local/lib/libonnxruntime.dylib" ]; then
+            echo "✅ libonnxruntime.dylib found and accessible"
+            file /usr/local/lib/libonnxruntime.dylib
+          else
+            echo "❌ libonnxruntime.dylib not found"
+          fi
+          
+          echo "🎯 ONNX Runtime verification complete!"
           
       - name: Run Mobile ONNX Tests
         run: |
