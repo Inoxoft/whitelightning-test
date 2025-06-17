@@ -68,10 +68,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake pkg-config
-          wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-linux-x64-1.22.0.tgz
-          tar -xzf onnxruntime-linux-x64-1.22.0.tgz
-          sudo cp -r onnxruntime-linux-x64-1.22.0/include/* /usr/local/include/
-          sudo cp onnxruntime-linux-x64-1.22.0/lib/* /usr/local/lib/
+          wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.16.0/onnxruntime-linux-x64-1.16.0.tgz
+          tar -xzf onnxruntime-linux-x64-1.16.0.tgz
+          sudo cp -r onnxruntime-linux-x64-1.16.0/include/* /usr/local/include/
+          sudo cp onnxruntime-linux-x64-1.16.0/lib/* /usr/local/lib/
           sudo ldconfig
           
       - name: Install C Dependencies
@@ -79,10 +79,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config
-          wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-linux-x64-1.22.0.tgz
-          tar -xzf onnxruntime-linux-x64-1.22.0.tgz
-          sudo cp -r onnxruntime-linux-x64-1.22.0/include/* /usr/local/include/
-          sudo cp onnxruntime-linux-x64-1.22.0/lib/* /usr/local/lib/
+          wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.16.0/onnxruntime-linux-x64-1.16.0.tgz
+          tar -xzf onnxruntime-linux-x64-1.16.0.tgz
+          sudo cp -r onnxruntime-linux-x64-1.16.0/include/* /usr/local/include/
+          sudo cp onnxruntime-linux-x64-1.16.0/lib/* /usr/local/lib/
           sudo ldconfig
           
       - name: Set up Node.js
@@ -172,7 +172,7 @@ jobs:
               if [ -n "${{ inputs.custom_text }}" ]; then
                 python -c "from test_onnx_model import test_custom_text; test_custom_text('${{ inputs.custom_text }}')"
               else
-                python -m pytest test_onnx_model.py -v -s
+                python test_onnx_model.py
               fi
               ;;
               
