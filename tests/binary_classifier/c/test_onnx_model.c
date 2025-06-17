@@ -340,23 +340,61 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
         return NULL;
     }
 
-    // Process text
+    // Process text - FIXED TF-IDF calculation
     char* text_copy = strdup(text);
     for (char* p = text_copy; *p; p++) *p = tolower(*p);
 
+    // Count word frequencies and total words
+    char* words[1000];  // Max 1000 words
+    int word_counts[1000];
+    int unique_words = 0;
+    int total_words = 0;
+    
     char* word = strtok(text_copy, " \t\n");
-    while (word) {
-        cJSON* idx = cJSON_GetObjectItem(vocab, word);
-        if (idx) {
-            int i = idx->valueint;
-            if (i < 5000) {
-                cJSON* idf_item = cJSON_GetArrayItem(idf, i);
-                if (idf_item) {
-                    vector[i] += idf_item->valuedouble;
+    while (word && strlen(word) > 0) {
+        total_words++;
+        
+        // Find if word already exists
+        int found = -1;
+        for (int j = 0; j < unique_words; j++) {
+            if (strcmp(words[j], word) == 0) {
+                found = j;
+                break;
+            }
+        }
+        
+        if (found >= 0) {
+            word_counts[found]++;
+        } else if (unique_words < 1000) {
+            words[unique_words] = strdup(word);
+            word_counts[unique_words] = 1;
+            unique_words++;
+        }
+        
+        word = strtok(NULL, " \t\n");
+    }
+    
+    // Apply CORRECTED TF-IDF with proper normalization
+    if (total_words > 0) {
+        for (int j = 0; j < unique_words; j++) {
+            cJSON* idx = cJSON_GetObjectItem(vocab, words[j]);
+            if (idx) {
+                int i = idx->valueint;
+                if (i < 5000) {
+                    cJSON* idf_item = cJSON_GetArrayItem(idf, i);
+                    if (idf_item) {
+                        // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
+                        double tf = (double)word_counts[j] / total_words;  // Term Frequency normalization
+                        vector[i] = tf * idf_item->valuedouble;            // Correct TF-IDF calculation
+                    }
                 }
             }
         }
-        word = strtok(NULL, " \t\n");
+    }
+    
+    // Clean up allocated words
+    for (int j = 0; j < unique_words; j++) {
+        free(words[j]);
     }
 
     // Apply scaling

@@ -217,19 +217,25 @@ async function preprocessText(text) {
     
     // Tokenize and count words
     const textLower = text.toLowerCase();
-    const words = textLower.split(/\s+/);
+    const words = textLower.split(/\s+/).filter(word => word.length > 0);
+    const totalWords = words.length;
     const wordCounts = {};
     
+    // Count word frequencies
     for (const word of words) {
         wordCounts[word] = (wordCounts[word] || 0) + 1;
     }
     
-    // Apply TF-IDF
-    for (const [word, count] of Object.entries(wordCounts)) {
-        if (vocab.hasOwnProperty(word)) {
-            const idx = vocab[word];
-            if (idx < 5000) {
-                vector[idx] = count * idf[idx];
+    // Apply CORRECTED TF-IDF with proper normalization
+    if (totalWords > 0) {
+        for (const [word, count] of Object.entries(wordCounts)) {
+            if (vocab.hasOwnProperty(word)) {
+                const idx = vocab[word];
+                if (idx < 5000) {
+                    // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
+                    const tf = count / totalWords;  // Term Frequency normalization
+                    vector[idx] = tf * idf[idx];     // Correct TF-IDF calculation
+                }
             }
         }
     }
