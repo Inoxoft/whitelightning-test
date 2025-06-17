@@ -1,0 +1,10 @@
+{
+  "avg_inference_time_ms": 4.356145858764648,
+  "max_inference_time_ms": 5.227375030517578,
+  "min_inference_time_ms": 3.4849166870117188,
+  "avg_memory_mb": 57.19921875,
+  "max_memory_mb": 62.919140625000004,
+  "model_status": "functional",
+  "accuracy_note": "Model running with standardized output format",
+  "recommended_action": "Model ready for production"
+}
