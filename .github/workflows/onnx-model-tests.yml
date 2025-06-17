@@ -827,7 +827,7 @@ jobs:
         run: |
           echo "🎯 Testing Binary Sentiment Classifier"
           flutter pub get
-          if [ -n "${{ inputs.custom_text }}" ]; then
+              if [ -n "${{ inputs.custom_text }}" ]; then
             echo "🔥 CUSTOM TEXT PREDICTION:"
             echo "Input: '${{ inputs.custom_text }}'"
             echo "════════════════════════════════════════"
@@ -844,7 +844,7 @@ jobs:
         run: |
           echo "📚 Testing Multiclass Topic Classifier"
           flutter pub get
-          if [ -n "${{ inputs.custom_text }}" ]; then
+              if [ -n "${{ inputs.custom_text }}" ]; then
             echo "🔥 CUSTOM TEXT PREDICTION:"
             echo "Input: '${{ inputs.custom_text }}'"
             echo "════════════════════════════════════════"
@@ -860,7 +860,7 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-          
+      
       - name: Run Swift Tests
         run: |
           if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
