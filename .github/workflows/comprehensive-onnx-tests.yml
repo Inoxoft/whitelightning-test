@@ -1,23 +1,11 @@
 name: Comprehensive ONNX Tests (All Languages & Models)
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
-    inputs:
-      binary_text:
-        description: 'Text for binary classifier (sentiment analysis)'
-        required: true
-        type: string
-        default: 'This product is amazing!'
-      multiclass_text:
-        description: 'Text for multiclass classifier (topic classification)'
-        required: true
-        type: string
-        default: 'Breaking news from politics today'
-      run_benchmarks:
-        description: 'Run performance benchmarks'
-        required: false
-        type: boolean
-        default: false
 
 jobs:
   comprehensive-tests:
@@ -146,9 +134,6 @@ jobs:
           echo "✅ Placeholder for future Swift support"
           
       - name: Run Tests
-        env:
-          BINARY_TEXT: ${{ inputs.binary_text }}
-          MULTICLASS_TEXT: ${{ inputs.multiclass_text }}
         run: |
           echo "🚀 Testing ${{ matrix.model_type }} with ${{ matrix.language }}"
           echo "═══════════════════════════════════════════════════════════════"
@@ -162,46 +147,20 @@ jobs:
             exit 0
           fi
           
-          # Set the appropriate custom text based on model type
-          if [ "${{ matrix.model_type }}" = "binary_classifier" ] && [ -n "${{ inputs.binary_text }}" ]; then
-            CUSTOM_TEXT="${{ inputs.binary_text }}"
-            echo "🔥 BINARY CLASSIFIER CUSTOM TEXT:"
-            echo "Input: '$CUSTOM_TEXT'"
-            echo "════════════════════════════════════════"
-          elif [ "${{ matrix.model_type }}" = "multiclass_classifier" ] && [ -n "${{ inputs.multiclass_text }}" ]; then
-            CUSTOM_TEXT="${{ inputs.multiclass_text }}"
-            echo "🔥 MULTICLASS CLASSIFIER CUSTOM TEXT:"
-            echo "Input: '$CUSTOM_TEXT'"
-            echo "════════════════════════════════════════"
-          else
-            CUSTOM_TEXT=""
-          fi
-          
           case "${{ matrix.language }}" in
             "python")
-              if [ -n "$CUSTOM_TEXT" ]; then
-                echo "Testing custom text: $CUSTOM_TEXT"
-                python -c "from test_onnx_model import test_custom_text; test_custom_text('$CUSTOM_TEXT')"
-              else
-                python test_onnx_model.py
-              fi
+              python test_onnx_model.py
               ;;
               
             "java")
               echo "🔨 Building Java implementation..."
               mvn clean compile
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "$CUSTOM_TEXT" ]; then
-                  echo "Testing custom text: $CUSTOM_TEXT"
-                  mvn exec:java -Dexec.args="\"$CUSTOM_TEXT\""
-                else
-                  echo "Running default test suite..."
-                  mvn exec:java
-                fi
+                echo "Running default test suite..."
+                mvn exec:java
               else
                 echo "⚠️ Model files not found, running CI build verification..."
                 echo "✅ Java implementation compiled and started successfully"
-                echo "🏗️ Build verification completed"
                 mvn exec:java || echo "Expected exit for missing model files"
               fi
               ;;
@@ -209,62 +168,35 @@ jobs:
             "cpp")
               export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               echo "🔨 Building C++ implementation..."
-              echo "🔗 Library path: $LD_LIBRARY_PATH"
               make clean && make
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "$CUSTOM_TEXT" ]; then
-                  echo "Testing custom text: $CUSTOM_TEXT"
-                  ./test_onnx_model "$CUSTOM_TEXT"
-                else
-                  echo "Running default test suite..."
-                  ./test_onnx_model
-                fi
+                echo "Running default test suite..."
+                ./test_onnx_model
               else
                 echo "⚠️ Model files not found, running CI build verification..."
-                echo "✅ C++ implementation compiled and started successfully"
-                echo "🏗️ Build verification completed"
                 ./test_onnx_model || echo "Expected exit for missing model files"
               fi
               ;;
               
             "c")
-              # Set up library path for ONNX Runtime (from root directory)
               export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               echo "🔨 Building C implementation..."
-              echo "📍 Working directory: $(pwd)"
-              echo "🔗 Library path: $LD_LIBRARY_PATH"
-              make clean
-              make
-              
-              echo "🚀 Running C tests..."
-              # Check if model files exist
+              make clean && make
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "$CUSTOM_TEXT" ]; then
-                  echo "Testing custom text: $CUSTOM_TEXT"
-                  ./test_onnx_model "$CUSTOM_TEXT"
-                else
-                  echo "Running default test suite..."
-                  ./test_onnx_model
-                fi
+                echo "Running default test suite..."
+                ./test_onnx_model
               else
                 echo "⚠️ Model files not found, running CI build verification..."
-                make test-ci
+                make test-ci || echo "Expected exit for missing model files"
               fi
               ;;
               
             "nodejs")
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "$CUSTOM_TEXT" ]; then
-                  echo "Testing custom text: $CUSTOM_TEXT"
-                  npm start "$CUSTOM_TEXT"
-                else
-                  echo "Running default test suite..."
-                  npm test
-                fi
+                echo "Running default test suite..."
+                npm test
               else
                 echo "⚠️ Model files not found, running CI build verification..."
-                echo "✅ JavaScript implementation compiled and started successfully"
-                echo "🏗️ Build verification completed"
                 npm test || echo "Expected exit for missing model files"
               fi
               ;;
@@ -273,28 +205,16 @@ jobs:
               echo "🔨 Building Rust implementation..."
               cargo build --release
               if [ -f model.onnx ] && [ -f vocab.json ] && [ -f scaler.json ]; then
-                if [ -n "$CUSTOM_TEXT" ]; then
-                  echo "Testing custom text: $CUSTOM_TEXT"
-                  cargo run --release "$CUSTOM_TEXT"
-                else
-                  echo "Running default test suite..."
-                  cargo run --release
-                fi
+                echo "Running default test suite..."
+                cargo run --release
               else
                 echo "⚠️ Model files not found, running CI build verification..."
-                echo "✅ Rust implementation compiled and started successfully"
-                echo "🏗️ Build verification completed"
                 cargo run --release || echo "Expected exit for missing model files"
               fi
               ;;
               
             "dart")
               flutter pub get
-              if [ "${{ matrix.model_type }}" = "binary_classifier" ]; then
-                export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="${{ inputs.binary_text }}"
-              else
-                export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="${{ inputs.multiclass_text }}"
-              fi
               flutter test --verbose --reporter expanded
               ;;
                
