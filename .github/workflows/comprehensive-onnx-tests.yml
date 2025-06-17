@@ -126,26 +126,8 @@ jobs:
       - name: Set up Swift/Xcode
         if: matrix.language == 'swift'
         run: |
-          # Install CocoaPods
-          sudo gem install cocoapods
-          
-          # Navigate to Swift project directory
-          cd tests/${{ matrix.model_type }}/swift
-          
-          # Check if Podfile exists, if not create it
-          if [ ! -f Podfile ]; then
-            echo "Creating Podfile..."
-            cat > Podfile << EOF
-          platform :ios, '13.0'
-          target 'ONNXTest' do
-            use_frameworks!
-            pod 'onnxruntime-objc'
-          end
-          EOF
-          fi
-          
-          # Install pods
-          pod install --repo-update
+          echo "🍎 Swift environment ready - using basic verification mode"
+          echo "📱 Note: Full iOS project setup would require CocoaPods and Xcode workspace"
           
 
           
@@ -261,67 +243,8 @@ jobs:
               ;;
               
             "swift")
-              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
-                echo "🤖 ONNX BINARY CLASSIFIER - SWIFT IMPLEMENTATION"
-                echo "============================================="
-              else
-                echo "🤖 ONNX MULTICLASS CLASSIFIER - SWIFT IMPLEMENTATION"
-                echo "==============================================="
-              fi
-              
-              # Check if we have an iOS project or just test files
-              if [ -f "ONNXTest.xcworkspace" ]; then
-                echo "🔄 Processing: $STANDARD_TEST_TEXT"
-                echo ""
-                echo "💻 SYSTEM INFORMATION:"
-                echo "   Platform: $(uname -s)"
-                echo "   Processor: $(uname -m)"
-                echo "   CPU Cores: $(sysctl -n hw.physicalcpu) physical, $(sysctl -n hw.logicalcpu) logical"
-                echo "   Total Memory: $(($(sysctl -n hw.memsize) / 1024 / 1024 / 1024)) GB"
-                echo "   Runtime: Swift $(swift --version | head -1 | cut -d' ' -f4)"
-                echo ""
-                echo "📱 BUILDING iOS PROJECT..."
-                # Build the project for iOS Simulator
-                xcodebuild -workspace ONNXTest.xcworkspace \
-                          -scheme ONNXTest \
-                          -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
-                          clean build > /dev/null 2>&1
-                          
-                if [ $? -eq 0 ]; then
-                  echo "✅ iOS project built successfully"
-                  echo ""
-                  echo "📊 ANALYSIS RESULTS:"
-                  echo "   🏆 Predicted Result: [Simulated - iOS Simulator Required]"
-                  echo "   📈 Confidence: [Requires Device Testing]"
-                  echo "   📝 Input Text: \"$STANDARD_TEST_TEXT\""
-                  echo ""
-                  echo "📈 PERFORMANCE SUMMARY:"
-                  echo "   Total Processing Time: [Build Only - ~2000ms]"
-                  echo "   ┣━ Preprocessing: [Simulator Required]"
-                  echo "   ┣━ Model Inference: [Simulator Required]"
-                  echo "   ┗━ Postprocessing: [Simulator Required]"
-                  echo ""
-                  echo "🚀 THROUGHPUT:"
-                  echo "   Texts per second: [Simulator Required]"
-                  echo ""
-                  echo "💾 RESOURCE USAGE:"
-                  echo "   Memory Start: [Simulator Required]"
-                  echo "   Memory End: [Simulator Required]"
-                  echo "   Memory Delta: [Simulator Required]"
-                  echo "   CPU Usage: [Simulator Required]"
-                  echo ""
-                  echo "🎯 PERFORMANCE RATING: ✅ BUILD SUCCESS"
-                  echo "   (Build verification completed - Runtime testing requires device)"
-                else
-                  echo "❌ iOS project build failed"
-                  echo "🎯 PERFORMANCE RATING: ❌ BUILD FAILED"
-                fi
-              else
-                echo "⚠️ No Xcode workspace found"
-                echo "📝 Expected files: ONNXTest.xcworkspace, model.onnx, vocab.json, label_map.json"
-                echo "📖 See README for Swift setup instructions"
-                echo "🎯 PERFORMANCE RATING: ⚠️ SETUP REQUIRED"
-              fi
+              # Run the Swift CLI script
+              swift infer.swift "$STANDARD_TEST_TEXT"
               ;;
           esac
           
