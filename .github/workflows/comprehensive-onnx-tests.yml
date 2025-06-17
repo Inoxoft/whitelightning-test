@@ -137,7 +137,7 @@ jobs:
           if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
             STANDARD_TEST_TEXT="Congratulations! You've won a free iPhone — click here to claim your prize now!"
           else
-            STANDARD_TEST_TEXT="President signs new legislation on healthcare reform"
+            STANDARD_TEST_TEXT="NBA Finals: Celtics Defeat Mavericks in Game 5 to Win Championship"
           fi
           
           cd tests/${{ matrix.model_type }}/${{ matrix.language }}

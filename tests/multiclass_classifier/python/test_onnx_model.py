@@ -55,10 +55,7 @@ class ONNXMulticlassModelTester:
         if test_texts is None:
             test_texts = [
                 "The government announced new policies to boost the economy",
-                "Scientists discover new treatment for cancer",
-                "Local team wins championship game",
-                "Stock market shows significant gains today",
-                "New movie breaks box office records"
+              
             ]
         
         # Get system info
