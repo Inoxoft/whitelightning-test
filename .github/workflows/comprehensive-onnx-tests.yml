@@ -129,11 +129,13 @@ jobs:
 
           
       - name: Run Tests
-        env:
-          STANDARD_TEST_TEXT: "It was very bad purchase"
         run: |
-          echo "🚀 Testing ${{ matrix.model_type }} with ${{ matrix.language }}"
-          echo "═══════════════════════════════════════════════════════════════"
+          # Set different test texts for each model type
+          if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+            STANDARD_TEST_TEXT="It was very bad purchase"
+          else
+            STANDARD_TEST_TEXT="President signs new legislation on healthcare reform"
+          fi
           
           cd tests/${{ matrix.model_type }}/${{ matrix.language }}
           
@@ -149,104 +151,92 @@ jobs:
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - PYTHON IMPLEMENTATION"
                 echo "=============================================="
-                python test_onnx_model.py "$STANDARD_TEST_TEXT"
               else
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - PYTHON IMPLEMENTATION"  
                 echo "=================================================="
-                python test_onnx_model.py "$STANDARD_TEST_TEXT"
               fi
+              python test_onnx_model.py "$STANDARD_TEST_TEXT"
               ;;
               
             "java")
-              echo "🔨 Building Java implementation..."
-              mvn clean compile
+              mvn clean compile -q
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - JAVA IMPLEMENTATION"
                 echo "============================================="
-                mvn exec:java -Dexec.args="\"$STANDARD_TEST_TEXT\""
               else
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - JAVA IMPLEMENTATION"
                 echo "==============================================="
-                mvn exec:java -Dexec.args="\"$STANDARD_TEST_TEXT\""
               fi
+              mvn exec:java -q -Dexec.args="\"$STANDARD_TEST_TEXT\""
               ;;
               
             "cpp")
-              echo "🔨 Building C++ implementation..."
               # Go back to root directory to export correct path
               cd ../../..
               export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               cd tests/${{ matrix.model_type }}/cpp
-              make clean && make
+              make clean && make > /dev/null 2>&1
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - C++ IMPLEMENTATION"
                 echo "============================================="
-                ./test_onnx_model "$STANDARD_TEST_TEXT"
               else
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - C++ IMPLEMENTATION"
                 echo "==============================================="
-                ./test_onnx_model "$STANDARD_TEST_TEXT"
               fi
+              ./test_onnx_model "$STANDARD_TEST_TEXT"
               ;;
               
             "c")
-              echo "🔨 Building C implementation..."
               # Go back to root directory to export correct path
               cd ../../..
               export LD_LIBRARY_PATH=$PWD/onnxruntime-linux-x64-1.22.0/lib:$LD_LIBRARY_PATH
               cd tests/${{ matrix.model_type }}/c
-              make clean && make
+              make clean && make > /dev/null 2>&1
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
                 echo "==========================================="
-                ./test_onnx_model "$STANDARD_TEST_TEXT"
               else
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - C IMPLEMENTATION"
                 echo "============================================="
-                ./test_onnx_model "$STANDARD_TEST_TEXT"
               fi
+              ./test_onnx_model "$STANDARD_TEST_TEXT"
               ;;
               
             "nodejs")
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - NODE.JS IMPLEMENTATION"
                 echo "==============================================="
-                node test_onnx_model.js "$STANDARD_TEST_TEXT"
               else
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - NODE.JS IMPLEMENTATION"
                 echo "================================================="
-                node test_onnx_model.js "$STANDARD_TEST_TEXT"
               fi
+              node test_onnx_model.js "$STANDARD_TEST_TEXT"
               ;;
               
             "rust")
-              echo "🔨 Building Rust implementation..."
-              cargo build --release
+              cargo build --release > /dev/null 2>&1
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - RUST IMPLEMENTATION"
                 echo "============================================="
-                cargo run --release -- "$STANDARD_TEST_TEXT"
               else
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - RUST IMPLEMENTATION"
                 echo "==============================================="
-                cargo run --release -- "$STANDARD_TEST_TEXT"
               fi
+              cargo run --release -- "$STANDARD_TEST_TEXT"
               ;;
               
             "dart")
-              flutter pub get
+              flutter pub get > /dev/null 2>&1
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - DART IMPLEMENTATION"
                 echo "============================================="
-                # Set environment variable for Dart test
-                export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="$STANDARD_TEST_TEXT"
-                flutter test --verbose --reporter expanded
               else
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - DART IMPLEMENTATION"
                 echo "==============================================="
-                export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="$STANDARD_TEST_TEXT"
-                flutter test --verbose --reporter expanded
               fi
+              # Set environment variable for Dart test
+              export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="$STANDARD_TEST_TEXT"
+              flutter test --reporter compact
               ;;
           esac
           
