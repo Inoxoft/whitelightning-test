@@ -449,7 +449,7 @@
       "name": "multiclass_classifier_dart",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.0"
     }
   ],
   "generator": "pub",
