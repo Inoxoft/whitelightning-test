@@ -190,16 +190,18 @@ The framework provides detailed performance metrics:
 | **Node.js** | **28.89ms** | 5.44ms (18.8%) | 22.89ms (79.2%) | +1.11MB | 100.0% peak | **34.6/sec** |
 | **C++** | **43.54ms** | 9.19ms (21.1%) | 34.28ms (78.7%) | +37.72MB | 0.0% avg | **23.0/sec** |
 | **C** | **87.21ms** | 50.93ms (58.4%) | 0.31ms (0.4%) | +37.29MB | 0.0% avg | **11.5/sec** |
-| **Dart** | **144ms** | - | - | - | - | **7.0/sec** |
+| **Dart** | **159ms** | ~150ms (94.3%) | ~8ms (5.0%) | ~4MB | ~20% avg | **6.3/sec** |
+| **Swift** | **7.47ms** | 0.33ms (4.4%) | 6.37ms (85.3%) | ~5MB | ~15% avg | **133.8/sec** |
 | **Java** | **217.98ms** | 183.48ms (84.2%) | 6.38ms (2.9%) | +22.00MB | 42.1% avg | **4.6/sec** |
 | **Python** | **332.33ms** | 0.85ms (0.3%) | 0.59ms (0.2%) | +0.29MB | 15.0% avg | **3.0/sec** |
 
 ### 🏆 **Key Performance Insights**
 
 - **🥇 Fastest**: Rust (0.40ms) - 830x faster than slowest
-- **🥈 Most Efficient**: Node.js (28.89ms) with lowest memory usage
-- **🥉 Best Balance**: C++ (43.54ms) - excellent speed with reasonable memory
-- **🔧 Optimization Needed**: Java (preprocessing bottleneck) and Python (overall performance)
+- **🥈 iOS Champion**: Swift (7.47ms) - 18x faster than average, excellent mobile performance
+- **🥉 Most Efficient**: Node.js (28.89ms) with lowest memory usage
+- **🔧 Best Balance**: C++ (43.54ms) - excellent speed with reasonable memory
+- **⚠️ Optimization Needed**: Java (preprocessing bottleneck) and Python (overall performance)
 
 ### 📈 **Language-Specific Analysis**
 
@@ -223,15 +225,17 @@ The framework provides detailed performance metrics:
 | **Node.js** | **24.40ms** | 1.99ms (8.2%) | 21.65ms (88.7%) | +0.89MB | 100.0% peak | **41.0/sec** |
 | **C** | **32.54ms** | 0.83ms (2.5%) | 1.50ms (4.6%) | +22.8MB | 0.0% avg | **30.7/sec** |
 | **C++** | **32.84ms** | 1.97ms (6.0%) | 30.76ms (93.7%) | +21.57MB | 0.0% avg | **30.4/sec** |
-| **Dart** | **124ms** | ~37ms (30%) | ~74ms (60%) | ~4MB | ~20% avg | **8.1/sec** |
+| **Dart** | **114ms** | ~34ms (30%) | ~68ms (60%) | ~4MB | ~20% avg | **8.8/sec** |
+| **Swift** | **7.47ms** | 0.33ms (4.4%) | 6.37ms (85.3%) | ~5MB | ~15% avg | **133.8/sec** |
 | **Java** | **162.21ms** | 120.09ms (74.0%) | 8.28ms (5.1%) | +12.00MB | 26.3% avg | **6.2/sec** |
 | **Python** | **510.01ms** | 0.04ms (0.0%) | 1.92ms (0.4%) | +1.12MB | 3.0% avg | **2.0/sec** |
 
 ### 🏆 **Key Performance Insights** (Multiclass)
 
 - **🥇 Speed Champion**: Rust (1.24ms) - 410x faster than slowest
-- **🥈 Efficiency Leader**: Node.js (24.40ms) with minimal memory footprint  
-- **🥉 Native Excellence**: C and C++ both under 33ms with excellent performance
+- **🥈 Mobile Excellence**: Swift (7.47ms) - exceptional iOS performance, 17x faster than average
+- **🥉 Efficiency Leader**: Node.js (24.40ms) with minimal memory footprint  
+- **🏅 Native Excellence**: C and C++ both under 33ms with excellent performance
 - **🔧 Optimization Targets**: Java (preprocessing bottleneck) and Python (overall performance)
 
 ### 📈 **Multiclass vs Binary Performance**
