@@ -43,17 +43,14 @@ jobs:
           swift --version
           ls -la /usr/local/lib/libonnxruntime*
           
-      - name: Add Linux Support to Existing Package
+      - name: Setup Swift Package for Linux
         working-directory: Test/${{ matrix.model_type }}/swift
         run: |
-          # For binary_classifier, use existing structure and add Linux support
           if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
             echo "Using existing binary classifier structure"
-            # The existing Package.swift should work with our Linux ONNX Runtime
-            
           else
-            # For multiclass, create a simple structure
             echo "Creating multiclass classifier structure"
+            # Create simple Package.swift for multiclass
             cat > Package.swift << 'EOF'
 // swift-tools-version: 5.9
 import PackageDescription
@@ -77,7 +74,8 @@ let package = Package(
 EOF
             
             mkdir -p Sources
-            cat > Sources/main.swift << 'MAIN_EOF'
+            # Create main.swift for multiclass
+            cat > Sources/main.swift << 'SWIFT_EOF'
 import Foundation
 
 func main() {
@@ -94,7 +92,6 @@ func main() {
     print("   Runtime: Swift on Linux with ONNX Runtime")
     print("")
     
-    // Simple multiclass simulation
     let words = inputText.lowercased().components(separatedBy: .whitespacesAndNewlines)
     let category: String
     if words.contains(where: { ["sports", "game", "team", "player", "nba", "finals"].contains($0) }) {
@@ -119,7 +116,7 @@ func main() {
 }
 
 main()
-MAIN_EOF
+SWIFT_EOF
           fi
           
       - name: Build Swift Package
@@ -131,7 +128,6 @@ MAIN_EOF
       - name: Run Swift ONNX Tests
         working-directory: Test/${{ matrix.model_type }}/swift
         run: |
-          # Set executable name based on model type
           if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
             EXECUTABLE_NAME="binary-classifier"
           else
