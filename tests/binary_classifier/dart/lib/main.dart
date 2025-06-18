@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onnxruntime/onnxruntime.dart';
@@ -44,9 +45,69 @@ Future<Float32List> preprocessText(String text) async {
   return Float32List.fromList(tfidfScaled);
 }
 
-Future<double> classifyTextBinary(String text) async {
-  final inputVector = await preprocessText(text);
+void printSystemInfo() {
+  print('💻 SYSTEM INFORMATION:');
+  print('   Platform: ${Platform.operatingSystem}');
+  print('   Version: ${Platform.operatingSystemVersion}');
+  print('   CPU Cores: ${Platform.numberOfProcessors} logical');
+  print('   Runtime: Dart ${Platform.version}');
+  print('');
+}
 
+void printPerformanceMetrics(String text, double probability, int totalTimeMs, int preprocessingMs, int inferenceMs) {
+  final sentiment = probability > 0.5 ? "POSITIVE" : "NEGATIVE";
+  final confidence = (probability * 100).toStringAsFixed(2);
+  final throughput = (1000 / totalTimeMs).toStringAsFixed(1);
+  
+  print('📊 SENTIMENT ANALYSIS RESULTS:');
+  print('   🏆 Predicted Sentiment: $sentiment');
+  print('   📈 Confidence: $confidence% (${probability.toStringAsFixed(4)})');
+  print('   📝 Input Text: "$text"');
+  print('');
+  
+  print('📈 PERFORMANCE SUMMARY:');
+  print('   Total Processing Time: ${totalTimeMs}ms');
+  print('   ┣━ Preprocessing: ${preprocessingMs}ms (${(preprocessingMs / totalTimeMs * 100).toStringAsFixed(1)}%)');
+  print('   ┣━ Model Inference: ${inferenceMs}ms (${(inferenceMs / totalTimeMs * 100).toStringAsFixed(1)}%)');
+  print('   ┗━ Postprocessing: 0ms (0.0%)');
+  print('');
+  
+  print('🚀 THROUGHPUT:');
+  print('   Texts per second: $throughput');
+  print('');
+  
+  print('💾 RESOURCE USAGE:');
+  print('   Memory tracking not available in Dart Flutter');
+  print('   CPU Usage: Not available in Dart Flutter');
+  print('');
+  
+  final rating = totalTimeMs < 50 ? '🚀 EXCELLENT' : 
+                 totalTimeMs < 100 ? '✅ GOOD' : 
+                 totalTimeMs < 200 ? '⚠️ ACCEPTABLE' : '🐌 SLOW';
+  print('🎯 PERFORMANCE RATING: $rating');
+  print('   (${totalTimeMs}ms total - Target: <100ms)');
+  print('');
+}
+
+Future<double> classifyTextBinary(String text) async {
+  print('🤖 ONNX BINARY CLASSIFIER - DART IMPLEMENTATION');
+  print('===========================================');
+  print('🔄 Processing: $text');
+  print('');
+  
+  printSystemInfo();
+  
+  final startTime = DateTime.now();
+  
+  // Preprocessing
+  final preprocessStart = DateTime.now();
+  final inputVector = await preprocessText(text);
+  final preprocessEnd = DateTime.now();
+  final preprocessingMs = preprocessEnd.difference(preprocessStart).inMilliseconds;
+
+  // Model inference
+  final inferenceStart = DateTime.now();
+  
   OrtEnv.instance.init();
   final sessionOptions = OrtSessionOptions();
   final rawModel = await rootBundle.load('model.onnx');
@@ -69,6 +130,10 @@ Future<double> classifyTextBinary(String text) async {
   final result = await session.runAsync(OrtRunOptions(), {
     inputName: inputTensor,
   });
+  
+  final inferenceEnd = DateTime.now();
+  final inferenceMs = inferenceEnd.difference(inferenceStart).inMilliseconds;
+  
   final resultList = result?.toList();
   double probability = -1.0;
   if (resultList != null && resultList.isNotEmpty && resultList[0] != null) {
@@ -82,9 +147,16 @@ Future<double> classifyTextBinary(String text) async {
       probability = (flatProbs[0] as num).toDouble();
     }
   }
+  
   inputTensor.release();
   session.release();
   OrtEnv.instance.release();
+  
+  final endTime = DateTime.now();
+  final totalTimeMs = endTime.difference(startTime).inMilliseconds;
+  
+  printPerformanceMetrics(text, probability, totalTimeMs, preprocessingMs, inferenceMs);
+  
   return probability;
 }
 
