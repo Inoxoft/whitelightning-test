@@ -1,6 +1,6 @@
 # 🤖 White Lightning ONNX Model Testing Framework
 
-A comprehensive cross-language testing framework for ONNX models with support for **Binary Classification** (sentiment analysis) and **Multiclass Classification** (topic classification) across 7 programming languages.
+A comprehensive cross-language testing framework for ONNX models with support for **Binary Classification** (spam message analysis) and **Multiclass Classification** (news topic classification) across 7 programming languages.
 
 ## 🚀 Available Workflows
 
