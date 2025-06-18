@@ -201,9 +201,9 @@ The framework provides detailed performance metrics:
 - **🥈 iOS Champion**: Swift (7.47ms) - 18x faster than average, excellent mobile performance
 - **🥉 Most Efficient**: Node.js (28.89ms) with lowest memory usage
 - **🔧 Best Balance**: C++ (43.54ms) - excellent speed with reasonable memory
-- **⚠️ Optimization Needed**: Java (preprocessing bottleneck) and Python (overall performance)
+<!-- - **⚠️ Optimization Needed**: Java (preprocessing bottleneck) and Python (overall performance) -->
 
-### 📈 **Language-Specific Analysis**
+<!-- ### 📈 **Language-Specific Analysis**
 
 | Metric | Best Performer | Worst Performer | Insight |
 |--------|----------------|-----------------|---------|
@@ -212,7 +212,7 @@ The framework provides detailed performance metrics:
 | **Inference** | C (0.31ms) | C++ (34ms) | C has optimized inference |
 | **Memory Usage** | Node.js (+1MB) | C++ (+38MB) | Node.js most memory efficient |
 | **CPU Efficiency** | Rust/C++ (0%) | Node.js (100%) | Native code more efficient |
-| **Throughput** | Rust (2,520/s) | Python (3/s) | Rust handles 840x more volume |
+| **Throughput** | Rust (2,520/s) | Python (3/s) | Rust handles 840x more volume | -->
 
 ### 📊 **Performance Comparison Table** (Multiclass Classifier)
 
@@ -258,7 +258,7 @@ The framework provides detailed performance metrics:
 | **Multiclass** | Java (74% preprocessing) | C (1.50ms) | Node.js (+0.89MB) |
 | **Winner** | C consistently faster | C wins both | Node.js wins both |
 
-### 🎯 **Language Selection Guide**
+<!-- ### 🎯 **Language Selection Guide**
 
 | Priority | Binary Classifier | Multiclass Classifier | Recommendation |
 |----------|------------------|----------------------|----------------|
@@ -267,7 +267,7 @@ The framework provides detailed performance metrics:
 | **System Integration** | C++ (43.54ms) | C++ (32.84ms) | C++ solid for native apps |
 | **Mobile Apps** | Dart (144ms) | Dart (124ms) | Dart/Flutter consistent |
 | **Enterprise** | Java (218ms) | Java (162ms) | Java needs preprocessing optimization |
-| **Research/Prototyping** | Python (332ms) | Python (510ms) | Python needs performance work |
+| **Research/Prototyping** | Python (332ms) | Python (510ms) | Python needs performance work | -->
 
 ## 🤝 Contributing
 
