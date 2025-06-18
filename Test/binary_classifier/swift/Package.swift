@@ -10,8 +10,8 @@ let package = Package(
         .watchOS(.v6)
     ],
     products: [
-        .executable(name: "binary-classifier", targets: ["BinaryClassifierSwift"]),
-        .library(name: "BinaryClassifierLib", targets: ["BinaryClassifierSwift"])
+        .executable(name: "binary-classifier", targets: ["BinaryClassifierApp"]),
+        .library(name: "BinaryClassifierLib", targets: ["BinaryClassifierLib"])
     ],
     dependencies: [
         // For production use with real ONNX Runtime:
@@ -20,21 +20,27 @@ let package = Package(
         // For Linux compatibility testing, we'll use system linking
     ],
     targets: [
-        .executableTarget(
-            name: "BinaryClassifierSwift",
+        .target(
+            name: "BinaryClassifierLib",
             dependencies: [
                 // For production: .product(name: "onnxruntime", package: "onnxruntime-swift-package-manager")
             ],
-            path: "Sources",
+            path: "Sources/BinaryClassifierLib",
             linkerSettings: [
                 // Linux system linking (comment out for production)
                 .linkedLibrary("onnxruntime", .when(platforms: [.linux])),
                 .unsafeFlags(["-L/usr/local/lib"], .when(platforms: [.linux]))
             ]
         ),
+        .executableTarget(
+            name: "BinaryClassifierApp",
+            dependencies: ["BinaryClassifierLib"],
+            path: "Sources/BinaryClassifierApp"
+        ),
         .testTarget(
             name: "BinaryClassifierSwiftTests",
-            dependencies: ["BinaryClassifierSwift"]
+            dependencies: ["BinaryClassifierLib"],
+            path: "Tests"
         )
     ]
 ) 

@@ -1,0 +1,4 @@
+module BinaryClassifierLib {
+    header "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/BinaryClassifierLib-Swift.h"
+    requires objc
+}

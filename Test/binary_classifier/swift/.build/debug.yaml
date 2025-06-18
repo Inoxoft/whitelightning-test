@@ -1,0 +1,168 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "BinaryClassifierApp-x86_64-apple-macosx15.0-debug.module": ["<BinaryClassifierApp-x86_64-apple-macosx15.0-debug.module>"]
+  "BinaryClassifierLib-x86_64-apple-macosx15.0-debug.module": ["<BinaryClassifierLib-x86_64-apple-macosx15.0-debug.module>"]
+  "BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.module": ["<BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.module>"]
+  "BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.test": ["<BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.test>"]
+  "BinaryClassifierSwiftTests-x86_64-apple-macosx15.0-debug.module": ["<BinaryClassifierSwiftTests-x86_64-apple-macosx15.0-debug.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "binary-classifier-x86_64-apple-macosx15.0-debug.exe": ["<binary-classifier-x86_64-apple-macosx15.0-debug.exe>"]
+  "main": ["<BinaryClassifierApp-x86_64-apple-macosx15.0-debug.module>","<BinaryClassifierLib-x86_64-apple-macosx15.0-debug.module>","<binary-classifier-x86_64-apple-macosx15.0-debug.exe>"]
+  "test": ["<BinaryClassifierApp-x86_64-apple-macosx15.0-debug.module>","<BinaryClassifierLib-x86_64-apple-macosx15.0-debug.module>","<BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.test>","<BinaryClassifierSwiftTests-x86_64-apple-macosx15.0-debug.module>","<binary-classifier-x86_64-apple-macosx15.0-debug.exe>"]
+default: "main"
+nodes:
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierApp/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierLib/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Tests/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier":
+    is-mutated: true
+commands:
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierApp/main.swift"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/sources"]
+    description: "Write auxiliary file /Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/sources"
+
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierLib/ONNXClassifier.swift"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/sources"]
+    description: "Write auxiliary file /Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/sources"
+
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.derived/runner.swift"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/sources"]
+    description: "Write auxiliary file /Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/sources"
+
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.derived/runner.swift":
+    tool: test-entry-point-tool
+    inputs: []
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.derived/runner.swift"]
+
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/runner.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/PlaceholderTests.swift.o"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.product/Objects.LinkFileList"
+
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Tests/BinaryClassifierSwiftTests/PlaceholderTests.swift"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/sources"]
+    description: "Write auxiliary file /Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/sources"
+
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier-entitlement.plist":
+    tool: write-auxiliary-file
+    inputs: ["<entitlement-plist>","<com.apple.security.get-task-allow>"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier-entitlement.plist"]
+    description: "Write auxiliary file /Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier-entitlement.plist"
+
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/main.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.swift.o"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier.product/Objects.LinkFileList"
+
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+
+  "<BinaryClassifierApp-x86_64-apple-macosx15.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/main.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierApp.swiftmodule"]
+    outputs: ["<BinaryClassifierApp-x86_64-apple-macosx15.0-debug.module>"]
+
+  "<BinaryClassifierLib-x86_64-apple-macosx15.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierLib.swiftmodule"]
+    outputs: ["<BinaryClassifierLib-x86_64-apple-macosx15.0-debug.module>"]
+
+  "<BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/runner.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftPackageTests.swiftmodule"]
+    outputs: ["<BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.module>"]
+
+  "<BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.test>":
+    tool: phony
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.xctest/Contents/MacOS/BinaryClassifierSwiftPackageTests"]
+    outputs: ["<BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.test>"]
+
+  "<BinaryClassifierSwiftTests-x86_64-apple-macosx15.0-debug.module>":
+    tool: phony
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/PlaceholderTests.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftTests.swiftmodule"]
+    outputs: ["<BinaryClassifierSwiftTests-x86_64-apple-macosx15.0-debug.module>"]
+
+  "<binary-classifier-x86_64-apple-macosx15.0-debug.exe>":
+    tool: phony
+    inputs: ["<binary-classifier-x86_64-apple-macosx15.0-debug.exe-CodeSigning>"]
+    outputs: ["<binary-classifier-x86_64-apple-macosx15.0-debug.exe>"]
+
+  "C.BinaryClassifierApp-x86_64-apple-macosx15.0-debug.module":
+    tool: shell
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierApp/main.swift","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierLib.swiftmodule","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/sources"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/main.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierApp.swiftmodule"]
+    description: "Compiling Swift Module 'BinaryClassifierApp' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","BinaryClassifierApp","-emit-dependencies","-emit-module","-emit-module-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierApp.swiftmodule","-output-file-map","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/output-file-map.json","-incremental","-c","@/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/sources","-I","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules","-target","x86_64-apple-macosx12.0","-enable-batch-mode","-index-store-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/index/store","-Onone","-enable-testing","-j8","-DSWIFT_PACKAGE","-DDEBUG","-module-cache-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/ModuleCache","-parseable-output","-Xfrontend","-entry-point-function-name","-Xfrontend","BinaryClassifierApp_main","-color-diagnostics","-swift-version","5","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","swift"]
+
+  "C.BinaryClassifierLib-x86_64-apple-macosx15.0-debug.module":
+    tool: shell
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierLib/ONNXClassifier.swift","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/sources"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierLib.swiftmodule"]
+    description: "Compiling Swift Module 'BinaryClassifierLib' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","BinaryClassifierLib","-emit-dependencies","-emit-module","-emit-module-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierLib.swiftmodule","-output-file-map","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/sources","-I","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules","-target","x86_64-apple-macosx12.0","-enable-batch-mode","-index-store-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/index/store","-Onone","-enable-testing","-j8","-DSWIFT_PACKAGE","-DDEBUG","-module-cache-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/BinaryClassifierLib-Swift.h","-color-diagnostics","-swift-version","5","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","swift"]
+
+  "C.BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.module":
+    tool: shell
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.derived/runner.swift","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftTests.swiftmodule","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/sources"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/runner.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftPackageTests.swiftmodule"]
+    description: "Compiling Swift Module 'BinaryClassifierSwiftPackageTests' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","BinaryClassifierSwiftPackageTests","-emit-dependencies","-emit-module","-emit-module-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftPackageTests.swiftmodule","-output-file-map","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/sources","-I","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules","-target","x86_64-apple-macosx12.0","-enable-batch-mode","-index-store-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/index/store","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j8","-DSWIFT_PACKAGE","-DDEBUG","-module-cache-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/BinaryClassifierSwiftPackageTests-Swift.h","-color-diagnostics","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","swift"]
+
+  "C.BinaryClassifierSwiftPackageTests-x86_64-apple-macosx15.0-debug.test":
+    tool: shell
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/runner.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/PlaceholderTests.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.product/Objects.LinkFileList"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.xctest/Contents/MacOS/BinaryClassifierSwiftPackageTests"]
+    description: "Linking ./.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.xctest/Contents/MacOS/BinaryClassifierSwiftPackageTests"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-L","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug","-o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.xctest/Contents/MacOS/BinaryClassifierSwiftPackageTests","-module-name","BinaryClassifierSwiftPackageTests","-Xlinker","-no_warn_duplicate_libraries","-Xlinker","-bundle","-Xlinker","-rpath","-Xlinker","@loader_path/../../../","@/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.product/Objects.LinkFileList","-target","x86_64-apple-macosx14.0","-Xlinker","-add_ast_path","-Xlinker","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierLib.swiftmodule","-Xlinker","-add_ast_path","-Xlinker","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftPackageTests.swiftmodule","-Xlinker","-add_ast_path","-Xlinker","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftTests.swiftmodule","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g"]
+
+  "C.BinaryClassifierSwiftTests-x86_64-apple-macosx15.0-debug.module":
+    tool: shell
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Tests/BinaryClassifierSwiftTests/PlaceholderTests.swift","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierLib.swiftmodule","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/sources"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/PlaceholderTests.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftTests.swiftmodule"]
+    description: "Compiling Swift Module 'BinaryClassifierSwiftTests' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","BinaryClassifierSwiftTests","-emit-dependencies","-emit-module","-emit-module-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierSwiftTests.swiftmodule","-output-file-map","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftTests.build/sources","-I","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules","-target","x86_64-apple-macosx14.0","-enable-batch-mode","-index-store-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/index/store","-Onone","-enable-testing","-Xfrontend","-enable-cross-import-overlays","-j8","-DSWIFT_PACKAGE","-DDEBUG","-module-cache-path","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/ModuleCache","-parseable-output","-parse-as-library","-color-diagnostics","-swift-version","5","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","swift"]
+
+  "C.binary-classifier-x86_64-apple-macosx15.0-debug.exe":
+    tool: shell
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierApp.build/main.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.swift.o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier.product/Objects.LinkFileList"]
+    outputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier"]
+    description: "Linking ./.build/x86_64-apple-macosx/debug/binary-classifier"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-L","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug","-o","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier","-module-name","binary_classifier","-Xlinker","-no_warn_duplicate_libraries","-emit-executable","-Xlinker","-alias","-Xlinker","_BinaryClassifierApp_main","-Xlinker","_main","-Xlinker","-rpath","-Xlinker","@loader_path","@/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier.product/Objects.LinkFileList","-target","x86_64-apple-macosx12.0","-Xlinker","-add_ast_path","-Xlinker","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierApp.swiftmodule","-Xlinker","-add_ast_path","-Xlinker","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/Modules/BinaryClassifierLib.swiftmodule","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g"]
+
+  "C.binary-classifier-x86_64-apple-macosx15.0-debug.exe-entitlements":
+    tool: shell
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier-entitlement.plist"]
+    outputs: ["<binary-classifier-x86_64-apple-macosx15.0-debug.exe-CodeSigning>"]
+    description: "Applying debug entitlements to ./.build/x86_64-apple-macosx/debug/binary-classifier"
+    args: ["codesign","--force","--sign","-","--entitlements","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier-entitlement.plist","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/binary-classifier"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierApp/","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierLib/","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Tests/","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Package.swift","/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+

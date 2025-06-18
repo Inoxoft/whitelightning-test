@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/master.swiftdeps"
+  },
+  "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/Sources/BinaryClassifierLib/ONNXClassifier.swift": {
+    "dependencies": "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.d",
+    "object": "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.swift.o",
+    "swiftmodule": "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier~partial.swiftmodule",
+    "swift-dependencies": "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierLib.build/ONNXClassifier.swiftdeps"
+  }
+}
