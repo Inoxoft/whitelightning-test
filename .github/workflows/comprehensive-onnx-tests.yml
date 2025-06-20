@@ -243,8 +243,20 @@ jobs:
               ;;
               
             "swift")
-              # Run the Swift CLI script
-              swift infer.swift "$STANDARD_TEST_TEXT"
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
+                echo "==========================================="
+                echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
+                echo "=============================================="
+                cd SwiftONNXRunner
+                swift build > /dev/null 2>&1
+                swift run
+              else
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - SWIFT IMPLEMENTATION"
+                echo "==============================================="
+                # Run the Swift CLI script for multiclass
+                swift infer.swift "$STANDARD_TEST_TEXT"
+              fi
               ;;
           esac
           
