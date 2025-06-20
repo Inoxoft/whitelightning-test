@@ -249,8 +249,8 @@ func runPerformanceBenchmark(modelPath: String, vocabPath: String, scalerPath: S
     // Load data once
     let tfidfData = try loadTFIDFData(from: vocabPath)
     let scalerData = try loadScalerData(from: scalerPath)
-    
-    guard let env = try? ORTEnv(loggingLevel: ORTLoggingLevel.warning) else {
+
+guard let env = try? ORTEnv(loggingLevel: ORTLoggingLevel.warning) else {
         throw NSError(domain: "ONNXError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to create ORT Environment"])
     }
     
@@ -336,8 +336,8 @@ func main() {
     let vocabPath = "vocab.json"
     let scalerPath = "scaler.json"
     
-    // Test case
-    let testText = "You won a free iPhone"
+    // Test case - use command line argument if provided, otherwise use default
+    let testText = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "You won a free iPhone"
     
     do {
         print("🔄 Processing: \(testText)")
