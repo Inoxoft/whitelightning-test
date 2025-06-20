@@ -24,9 +24,11 @@ let package = Package(
             ],
             path: "Sources/BinaryClassifierLib",
             linkerSettings: [
-                // For GitHub Actions with CocoaPods
+                // For GitHub Actions with CocoaPods - try multiple paths
                 .linkedFramework("onnxruntime_objc", .when(platforms: [.macOS])),
-                .unsafeFlags(["-F/Users/runner/work/_temp/Pods/onnxruntime-objc"], .when(platforms: [.macOS]))
+                .unsafeFlags(["-F./Pods/onnxruntime-objc"], .when(platforms: [.macOS])),
+                .unsafeFlags(["-F/Users/runner/work/_temp/Pods/onnxruntime-objc"], .when(platforms: [.macOS])),
+                .unsafeFlags(["-rpath", "./Pods/onnxruntime-objc"], .when(platforms: [.macOS]))
             ]
         ),
         .executableTarget(
