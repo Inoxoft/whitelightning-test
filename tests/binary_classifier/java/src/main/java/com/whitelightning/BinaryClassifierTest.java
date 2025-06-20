@@ -201,7 +201,6 @@ public class BinaryClassifierTest {
         Arrays.fill(vector, 0.0f);
         
         JsonNode vocab = tfidfData.get("vocab");
-        JsonNode idfArray = tfidfData.get("idf");
         
         // Load scaler data
         JsonNode scalerData = mapper.readTree(new File("scaler.json"));
@@ -229,18 +228,18 @@ public class BinaryClassifierTest {
                 
                 if (vocab.has(word)) {
                     int idx = vocab.get(word).asInt();
-                    if (idx < 5000) {
-                        double idf = idfArray.get(idx).asDouble();
+                    if (idx < vocabSize) {
+                        double idfValue = idf.get(idx).asDouble();
                         // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
                         double tf = (double) count / totalWords;  // Term Frequency normalization
-                        vector[idx] = (float) (tf * idf);         // Correct TF-IDF calculation
+                        vector[idx] = (float) (tf * idfValue);         // Correct TF-IDF calculation
                     }
                 }
             }
         }
         
         // Apply scaling
-        for (int i = 0; i < 5000; i++) {
+        for (int i = 0; i < vocabSize; i++) {
             double mean = meanArray.get(i).asDouble();
             double scale = scaleArray.get(i).asDouble();
             vector[i] = (float) ((vector[i] - mean) / scale);
@@ -268,7 +267,7 @@ public class BinaryClassifierTest {
             
             // Preprocess once
             float[] inputVector = preprocessText(testText);
-            long[] shape = {1, 5000};
+            long[] shape = {1, inputVector.length};
             String inputName = getInputName(session);
             
             // Warmup runs
