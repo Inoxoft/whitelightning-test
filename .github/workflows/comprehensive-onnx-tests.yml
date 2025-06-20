@@ -254,7 +254,7 @@ jobs:
                 echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
                 echo "=============================================="
                 swift build > /dev/null 2>&1
-                swift run
+                swift run SwiftONNXRunner "$STANDARD_TEST_TEXT"
               else
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - SWIFT IMPLEMENTATION"
                 echo "==============================================="
