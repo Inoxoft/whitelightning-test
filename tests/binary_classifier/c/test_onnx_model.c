@@ -489,7 +489,7 @@ int test_single_text(const char* text, const char* model_path, const char* vocab
         printf("❌ Failed to get vocabulary size\n");
         return 1;
     }
-    
+
     // Preprocessing
     double preprocess_start = get_time_ms();
     float* vector = preprocess_text(text, vocab_path, scaler_path);

@@ -854,31 +854,31 @@ jobs:
           flutter test --verbose --reporter expanded
 
   swift-tests:
-    name: Swift Tests (Simulation Mode)
-    runs-on: macos-latest  # ✅ Using macOS (best for Swift)
+    name: Swift Tests
+    runs-on: macos-latest
     if: ${{ inputs.language == 'swift' }}
     
     steps:
       - uses: actions/checkout@v4
       
-      - name: Run Swift Tests (Simulation Mode)
+      - name: Run Swift Tests
         run: |
           if [[ "${{ inputs.model_type }}" == *"binary_classifier"* ]]; then
             cd tests/binary_classifier/swift
-            echo "🚀 Running binary classifier Swift tests (Simulation Mode)..."
+            echo "🚀 Running binary classifier Swift tests..."
             
             if [ -n "${{ inputs.custom_text }}" ]; then
               CUSTOM_TEXT="${{ inputs.custom_text }}"
             else
-              CUSTOM_TEXT="Congratulations! You've won a free iPhone — click here to claim your prize now!"
+              CUSTOM_TEXT="It was very bad purchase"
             fi
             
-            # Run simulation mode (reliable in CI)
+            # Run the Swift CLI script
             swift infer.swift "$CUSTOM_TEXT"
             
           else
             cd tests/multiclass_classifier/swift
-            echo "🚀 Running multiclass classifier Swift tests (Simulation Mode)..."
+            echo "🚀 Running multiclass classifier Swift tests..."
             
             if [ -n "${{ inputs.custom_text }}" ]; then
               CUSTOM_TEXT="${{ inputs.custom_text }}"
@@ -886,21 +886,9 @@ jobs:
               CUSTOM_TEXT="President signs new legislation on healthcare reform"
             fi
             
-            # Run simulation mode (reliable in CI)
+            # Run the Swift CLI script
             swift infer.swift "$CUSTOM_TEXT"
           fi
-      
-      - name: Note about Real ONNX Runtime
-        run: |
-          echo "📝 NOTE: This runs in simulation mode for CI reliability"
-          echo "🔧 For REAL ONNX Runtime locally:"
-          echo "   1. cd tests/binary_classifier/swift"
-          echo "   2. pod install"
-          echo "   3. swift build"
-          echo "   4. swift run binary-classifier 'Your text'"
-          echo ""
-          echo "💡 Simulation mode provides consistent CI results"
-          echo "✅ Swift implementation verified successfully!"
           
       - name: Upload Swift test artifacts
         uses: actions/upload-artifact@v4

@@ -1,4 +1,0 @@
-module BinaryClassifierSwiftPackageTests {
-    header "/Users/v_kyba/Inoxoft/whitelightning-test/Test/binary_classifier/swift/.build/x86_64-apple-macosx/debug/BinaryClassifierSwiftPackageTests.build/BinaryClassifierSwiftPackageTests-Swift.h"
-    requires objc
-}
