@@ -254,8 +254,6 @@ void print_performance_summary(const TimingMetrics& timing, const ResourceMetric
 }
 
 std::vector<float> preprocess_text(const std::string& text, const std::string& vocab_file, const std::string& scaler_file) {
-    std::vector<float> vector(5000, 0.0f);
-    
     std::ifstream vf(vocab_file);
     if (!vf.is_open()) {
         throw std::runtime_error("Failed to open vocab file: " + vocab_file);
@@ -264,6 +262,10 @@ std::vector<float> preprocess_text(const std::string& text, const std::string& v
     vf >> tfidf_data;
     auto vocab = tfidf_data["vocab"];
     std::vector<float> idf = tfidf_data["idf"];
+    
+    // Get actual vocabulary size from the data
+    int vocab_size = vocab.size();
+    std::vector<float> vector(vocab_size, 0.0f);
     
     std::ifstream sf(scaler_file);
     if (!sf.is_open()) {
@@ -305,7 +307,7 @@ std::vector<float> preprocess_text(const std::string& text, const std::string& v
         for (const auto& [word, count] : word_counts) {
             if (vocab.contains(word)) {
                 int idx = vocab[word];
-                if (idx < 5000) {
+                if (idx < vocab_size) {
                     // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
                     double tf = static_cast<double>(count) / total_words;  // Term Frequency normalization
                     vector[idx] = tf * idf[idx];                           // Correct TF-IDF calculation
@@ -315,7 +317,7 @@ std::vector<float> preprocess_text(const std::string& text, const std::string& v
     }
     
     // Apply scaling
-    for (int i = 0; i < 5000; i++) {
+    for (int i = 0; i < vocab_size; i++) {
         vector[i] = (vector[i] - mean[i]) / scale[i];
     }
     
@@ -358,7 +360,7 @@ int test_single_text(const std::string& text, const std::string& model_path,
         auto input_name = session.GetInputNameAllocated(0, allocator);
         auto output_name = session.GetOutputNameAllocated(0, allocator);
         
-        std::vector<int64_t> input_shape = {1, 5000};
+        std::vector<int64_t> input_shape = {1, static_cast<int64_t>(vector.size())};
         Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0, OrtMemTypeDefault);
         Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, vector.data(), 
                                                                 vector.size(), input_shape.data(), input_shape.size());
@@ -432,7 +434,7 @@ int run_performance_benchmark(const std::string& model_path, const std::string& 
         // Preprocess once
         auto vector = preprocess_text(test_text, vocab_path, scaler_path);
         
-        std::vector<int64_t> input_shape = {1, 5000};
+        std::vector<int64_t> input_shape = {1, static_cast<int64_t>(vector.size())};
         Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0, OrtMemTypeDefault);
         Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, vector.data(), 
                                                                 vector.size(), input_shape.data(), input_shape.size());

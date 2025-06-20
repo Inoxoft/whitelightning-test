@@ -258,13 +258,43 @@ void print_performance_summary(TimingMetrics* timing, ResourceMetrics* resources
     printf("\n");
 }
 
+// Add a function to get vocabulary size
+int get_vocab_size(const char* vocab_file) {
+    FILE* f = fopen(vocab_file, "r");
+    if (!f) return -1;
+    
+    fseek(f, 0, SEEK_END);
+    long len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char* json_str = malloc(len + 1);
+    if (fread(json_str, 1, len, f) != (size_t)len) {
+        free(json_str);
+        fclose(f);
+        return -1;
+    }
+    json_str[len] = 0;
+    fclose(f);
+    
+    cJSON* tfidf_data = cJSON_Parse(json_str);
+    if (!tfidf_data) {
+        free(json_str);
+        return -1;
+    }
+    
+    cJSON* idf = cJSON_GetObjectItem(tfidf_data, "idf");
+    int vocab_size = idf ? cJSON_GetArraySize(idf) : -1;
+    
+    free(json_str);
+    cJSON_Delete(tfidf_data);
+    return vocab_size;
+}
+
 float* preprocess_text(const char* text, const char* vocab_file, const char* scaler_file) {
-    float* vector = calloc(5000, sizeof(float));
-    if (!vector) return NULL;
+    // We'll allocate the vector after we know the vocabulary size
+    float* vector = NULL;
 
     FILE* f = fopen(vocab_file, "r");
     if (!f) {
-        free(vector);
         return NULL;
     }
 
@@ -274,7 +304,6 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     char* json_str = malloc(len + 1);
     if (fread(json_str, 1, len, f) != (size_t)len) {
         free(json_str);
-        free(vector);
         fclose(f);
         return NULL;
     }
@@ -284,7 +313,6 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     cJSON* tfidf_data = cJSON_Parse(json_str);
     if (!tfidf_data) {
         free(json_str);
-        free(vector);
         return NULL;
     }
 
@@ -292,7 +320,22 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     cJSON* idf = cJSON_GetObjectItem(tfidf_data, "idf");
     if (!vocab || !idf) {
         free(json_str);
-        free(vector);
+        cJSON_Delete(tfidf_data);
+        return NULL;
+    }
+    
+    // Get vocabulary size dynamically from the IDF array size
+    int vocab_size = cJSON_GetArraySize(idf);
+    if (vocab_size <= 0) {
+        free(json_str);
+        cJSON_Delete(tfidf_data);
+        return NULL;
+    }
+    
+    // Now allocate the vector with the correct size
+    vector = calloc(vocab_size, sizeof(float));
+    if (!vector) {
+        free(json_str);
         cJSON_Delete(tfidf_data);
         return NULL;
     }
@@ -380,7 +423,7 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
             cJSON* idx = cJSON_GetObjectItem(vocab, words[j]);
             if (idx) {
                 int i = idx->valueint;
-                if (i < 5000) {
+                if (i < vocab_size) {
                     cJSON* idf_item = cJSON_GetArrayItem(idf, i);
                     if (idf_item) {
                         // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
@@ -398,7 +441,7 @@ float* preprocess_text(const char* text, const char* vocab_file, const char* sca
     }
 
     // Apply scaling
-    for (int i = 0; i < 5000; i++) {
+    for (int i = 0; i < vocab_size; i++) {
         cJSON* mean_item = cJSON_GetArrayItem(mean, i);
         cJSON* scale_item = cJSON_GetArrayItem(scale, i);
         if (mean_item && scale_item) {
@@ -440,6 +483,13 @@ int test_single_text(const char* text, const char* model_path, const char* vocab
         return 1;
     }
 
+    // Get vocabulary size first
+    int vocab_size = get_vocab_size(vocab_path);
+    if (vocab_size <= 0) {
+        printf("❌ Failed to get vocabulary size\n");
+        return 1;
+    }
+    
     // Preprocessing
     double preprocess_start = get_time_ms();
     float* vector = preprocess_text(text, vocab_path, scaler_path);
@@ -488,9 +538,9 @@ int test_single_text(const char* text, const char* model_path, const char* vocab
         return 1;
     }
 
-    int64_t input_shape[] = {1, 5000};
+    int64_t input_shape[] = {1, vocab_size};
     OrtValue* input_tensor;
-    status = g_ort->CreateTensorWithDataAsOrtValue(memory_info, vector, 5000 * sizeof(float), 
+    status = g_ort->CreateTensorWithDataAsOrtValue(memory_info, vector, vocab_size * sizeof(float), 
                                                  input_shape, 2, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, 
                                                  &input_tensor);
     if (status) {
@@ -607,13 +657,17 @@ int run_performance_benchmark(const char* model_path, const char* vocab_path, co
     status = g_ort->CreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault, &memory_info);
     if (status) return 1;
     
+    // Get vocabulary size first
+    int vocab_size = get_vocab_size(vocab_path);
+    if (vocab_size <= 0) return 1;
+    
     // Preprocess once
     float* vector = preprocess_text(test_text, vocab_path, scaler_path);
     if (!vector) return 1;
     
-    int64_t input_shape[] = {1, 5000};
+    int64_t input_shape[] = {1, vocab_size};
     OrtValue* input_tensor;
-    status = g_ort->CreateTensorWithDataAsOrtValue(memory_info, vector, 5000 * sizeof(float), 
+    status = g_ort->CreateTensorWithDataAsOrtValue(memory_info, vector, vocab_size * sizeof(float), 
                                                  input_shape, 2, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, 
                                                  &input_tensor);
     if (status) return 1;

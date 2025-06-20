@@ -150,7 +150,7 @@ public class BinaryClassifierTest {
             long inferenceStart = System.nanoTime();
             
             // Create input tensor
-            long[] shape = {1, 5000};
+            long[] shape = {1, inputVector.length};
             OnnxTensor inputTensor = OnnxTensor.createTensor(env, FloatBuffer.wrap(inputVector), shape);
             
             // Run inference
@@ -191,12 +191,15 @@ public class BinaryClassifierTest {
     }
     
     private static float[] preprocessText(String text) throws IOException {
-        float[] vector = new float[5000];
-        Arrays.fill(vector, 0.0f);
-        
-        // Load TF-IDF data
+        // Load TF-IDF data first to get vocabulary size
         ObjectMapper mapper = new ObjectMapper();
         JsonNode tfidfData = mapper.readTree(new File("vocab.json"));
+        JsonNode idf = tfidfData.get("idf");
+        int vocabSize = idf.size();
+        
+        float[] vector = new float[vocabSize];
+        Arrays.fill(vector, 0.0f);
+        
         JsonNode vocab = tfidfData.get("vocab");
         JsonNode idfArray = tfidfData.get("idf");
         

@@ -203,12 +203,14 @@ function printPerformanceSummary(timing, resources) {
 }
 
 async function preprocessText(text) {
-    const vector = new Float32Array(5000);
-    
-    // Load TF-IDF data
+    // Load TF-IDF data first to get vocabulary size
     const tfidfData = JSON.parse(readFileSync('vocab.json', 'utf8'));
-    const vocab = tfidfData.vocab;
     const idf = tfidfData.idf;
+    const vocabSize = idf.length;
+    
+    const vector = new Float32Array(vocabSize);
+    
+    const vocab = tfidfData.vocab;
     
     // Load scaler data
     const scalerData = JSON.parse(readFileSync('scaler.json', 'utf8'));
@@ -231,7 +233,7 @@ async function preprocessText(text) {
         for (const [word, count] of Object.entries(wordCounts)) {
             if (vocab.hasOwnProperty(word)) {
                 const idx = vocab[word];
-                if (idx < 5000) {
+                if (idx < vocabSize) {
                     // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
                     const tf = count / totalWords;  // Term Frequency normalization
                     vector[idx] = tf * idf[idx];     // Correct TF-IDF calculation
@@ -241,7 +243,7 @@ async function preprocessText(text) {
     }
     
     // Apply scaling
-    for (let i = 0; i < 5000; i++) {
+    for (let i = 0; i < vocabSize; i++) {
         vector[i] = (vector[i] - mean[i]) / scale[i];
     }
     
@@ -278,7 +280,7 @@ async function testSingleText(text) {
         const session = await ort.InferenceSession.create('model.onnx');
         
         // Create input tensor
-        const inputTensor = new ort.Tensor('float32', inputVector, [1, 5000]);
+        const inputTensor = new ort.Tensor('float32', inputVector, [1, inputVector.length]);
         
         // Get input name dynamically
         const inputName = session.inputNames[0];
@@ -345,7 +347,7 @@ async function runPerformanceBenchmark(numRuns) {
         // Warmup runs
         console.log('🔥 Warming up model (5 runs)...');
         for (let i = 0; i < 5; i++) {
-            const inputTensor = new ort.Tensor('float32', inputVector, [1, 5000]);
+            const inputTensor = new ort.Tensor('float32', inputVector, [1, inputVector.length]);
             const feeds = { [inputName]: inputTensor };
             await session.run(feeds);
         }
@@ -365,7 +367,7 @@ async function runPerformanceBenchmark(numRuns) {
             const startTime = getTimeMs();
             const inferenceStart = getTimeMs();
             
-            const inputTensor = new ort.Tensor('float32', inputVector, [1, 5000]);
+            const inputTensor = new ort.Tensor('float32', inputVector, [1, inputVector.length]);
             const feeds = { [inputName]: inputTensor };
             await session.run(feeds);
             

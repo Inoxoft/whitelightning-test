@@ -304,7 +304,8 @@ impl BinaryClassifier {
     }
 
     fn preprocess_text(&self, text: &str) -> Vec<f32> {
-        let mut vector = vec![0.0; 5000];
+        let vocab_size = self.idf.len();
+        let mut vector = vec![0.0; vocab_size];
         let mut word_counts: HashMap<&str, usize> = HashMap::new();
         let mut total_words = 0;
 
@@ -320,7 +321,7 @@ impl BinaryClassifier {
         if total_words > 0 {
             for (word, count) in word_counts {
                 if let Some(&idx) = self.vocab.get(word) {
-                    if idx < 5000 {
+                    if idx < vocab_size {
                         // FIXED: Calculate proper TF (normalized by total words) then multiply by IDF
                         let tf = count as f32 / total_words as f32;  // Term Frequency normalization
                         vector[idx] = tf * self.idf[idx];            // Correct TF-IDF calculation
@@ -329,7 +330,7 @@ impl BinaryClassifier {
             }
         }
 
-        for i in 0..5000 {
+        for i in 0..vocab_size {
             vector[i] = (vector[i] - self.mean[i]) / self.scale[i];
         }
 
@@ -346,7 +347,8 @@ impl BinaryClassifier {
         
         // Inference
         let inference_start = Instant::now();
-        let input_array = Array2::from_shape_vec((1, 5000), input_data)?;
+        let vocab_size = input_data.len();
+        let input_array = Array2::from_shape_vec((1, vocab_size), input_data)?;
         let input_dyn = input_array.into_dyn();
         let input_cow = ndarray::CowArray::from(input_dyn.view());
         let input_tensor = Value::from_array(self.session.allocator(), &input_cow)?;
