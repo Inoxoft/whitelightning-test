@@ -1,0 +1,21 @@
+platform :osx, '12.0'
+
+target 'BinaryClassifierSwift' do
+  use_frameworks!
+  
+  # ONNX Runtime for macOS
+  pod 'onnxruntime-objc', '~> 1.16.0'
+  
+  # For local development, you can also add:
+  # pod 'onnxruntime-objc/Core', '~> 1.16.0'
+end
+
+# Post install hook to ensure proper configuration
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12.0'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+    end
+  end
+end 
