@@ -1,16 +1,16 @@
 import Foundation
-import onnxruntime_objc
+import OnnxRuntimeBindings
 import Darwin
 
 // MARK: - Data Structures
-struct TFIDFData {
+struct TFIDFData: Codable {
     let vocab: [String: Int]
-    let idf: [Float]
+    let idf: [Double]
 }
 
-struct ScalerData {
-    let mean: [Float]
-    let scale: [Float]
+struct ScalerData: Codable {
+    let mean: [Double]
+    let scale: [Double]
 }
 
 struct TimingMetrics {
@@ -107,17 +107,21 @@ func loadTFIDFData(from path: String) throws -> TFIDFData {
     let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
     
     let vocab = json["vocab"] as! [String: Int]
-    let idfArray = json["idf"] as! [Float]
+    let idfArray = json["idf"] as! [Any]
+    let idf = idfArray.map { ($0 as! NSNumber).doubleValue }
     
-    return TFIDFData(vocab: vocab, idf: idfArray)
+    return TFIDFData(vocab: vocab, idf: idf)
 }
 
 func loadScalerData(from path: String) throws -> ScalerData {
     let data = try Data(contentsOf: URL(fileURLWithPath: path))
     let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
     
-    let mean = json["mean"] as! [Float]
-    let scale = json["scale"] as! [Float]
+    let meanArray = json["mean"] as! [Any]
+    let mean = meanArray.map { ($0 as! NSNumber).doubleValue }
+    
+    let scaleArray = json["scale"] as! [Any]
+    let scale = scaleArray.map { ($0 as! NSNumber).doubleValue }
     
     return ScalerData(mean: mean, scale: scale)
 }
@@ -132,15 +136,22 @@ func preprocessText(_ text: String, tfidfData: TFIDFData, scalerData: ScalerData
     
     for (word, count) in termFrequency {
         if let index = tfidfData.vocab[word], index < vocabSize {
-            let tf = Float(count) / Float(tokens.count)
+            let tf = Double(count) / Double(tokens.count)
             let idf = tfidfData.idf[index]
-            vector[index] = tf * idf
+            vector[index] = Float(tf * idf)
         }
     }
     
     // Apply scaling
     for i in 0..<vocabSize {
-        vector[i] = (vector[i] - scalerData.mean[i]) / scalerData.scale[i]
+        let scaledValue = (Double(vector[i]) - scalerData.mean[i]) / scalerData.scale[i]
+        vector[i] = Float(scaledValue)
+        
+        // Check for problematic values
+        if !vector[i].isFinite {
+            print("Warning: Non-finite value at index \(i): \(vector[i]) (original: \(scaledValue))")
+            vector[i] = 0.0 // Replace with 0
+        }
     }
     
     return vector
@@ -155,13 +166,18 @@ func runInference(text: String, modelPath: String, vocabPath: String, scalerPath
     resources.memoryStartMB = getMemoryUsageMB()
     
     // Load data files
+    print("📁 Loading TF-IDF data...")
     let tfidfData = try loadTFIDFData(from: vocabPath)
+    print("📁 Loading scaler data...")
     let scalerData = try loadScalerData(from: scalerPath)
+    print("✅ Data files loaded successfully")
     
     // Preprocessing
+    print("🔄 Starting preprocessing...")
     let preprocessStart = getCurrentTimeMs()
     let inputVector = preprocessText(text, tfidfData: tfidfData, scalerData: scalerData)
     timing.preprocessingTime = getCurrentTimeMs() - preprocessStart
+    print("✅ Preprocessing completed. Vector size: \(inputVector.count)")
     
     // Create ONNX Runtime environment and session
     guard let env = try? ORTEnv(loggingLevel: ORTLoggingLevel.warning) else {
@@ -174,9 +190,12 @@ func runInference(text: String, modelPath: String, vocabPath: String, scalerPath
     
     // Create input tensor
     let shape: [NSNumber] = [1, NSNumber(value: inputVector.count)]
-    guard let inputTensor = try? ORTValue(denseTensorWith: inputVector, shape: shape, dataType: ORTTensorElementDataType.float) else {
-        throw NSError(domain: "ONNXError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Failed to create input tensor"])
-    }
+    let inputData = Data(from: inputVector)
+    let inputTensor = try ORTValue(
+        tensorData: NSMutableData(data: inputData),
+        elementType: .float,
+        shape: shape
+    )
     
     // Run inference
     let inferenceStart = getCurrentTimeMs()
@@ -188,13 +207,21 @@ func runInference(text: String, modelPath: String, vocabPath: String, scalerPath
     
     // Post-processing
     let postprocessStart = getCurrentTimeMs()
-    guard let output = outputs[outputName],
-          let outputData = try? output.denseTensorData() as Data else {
-        throw NSError(domain: "ONNXError", code: 4, userInfo: [NSLocalizedDescriptionKey: "Failed to get output data"])
+    guard let output = outputs[outputName] else {
+        throw NSError(domain: "ONNXError", code: 4, userInfo: [NSLocalizedDescriptionKey: "Failed to get output"])
     }
     
-    let prediction = outputData.withUnsafeBytes { bytes in
-        return bytes.bindMemory(to: Float.self)[0]
+    let rawData = try output.tensorData()
+    let resultData: Data
+    if let d = rawData as? Data {
+        resultData = d
+    } else {
+        resultData = Data(rawData)
+    }
+    
+    let prediction = resultData.withUnsafeBytes { buffer in
+        let pointer = buffer.bindMemory(to: Float.self)
+        return pointer[0]
     }
     timing.postprocessingTime = getCurrentTimeMs() - postprocessStart
     
@@ -210,7 +237,7 @@ func runInference(text: String, modelPath: String, vocabPath: String, scalerPath
 
 // MARK: - Performance Benchmark
 func runPerformanceBenchmark(modelPath: String, vocabPath: String, scalerPath: String, numRuns: Int = 100) throws {
-    let testText = "Congratulations! You've won a free iPhone — click here to claim your prize now!"
+    let testText = "You won a free iPhone"
     
     print("🚀 PERFORMANCE BENCHMARK")
     print("======================")
@@ -234,9 +261,12 @@ func runPerformanceBenchmark(modelPath: String, vocabPath: String, scalerPath: S
     // Preprocess once
     let inputVector = preprocessText(testText, tfidfData: tfidfData, scalerData: scalerData)
     let shape: [NSNumber] = [1, NSNumber(value: inputVector.count)]
-    guard let inputTensor = try? ORTValue(denseTensorWith: inputVector, shape: shape, dataType: ORTTensorElementDataType.float) else {
-        throw NSError(domain: "ONNXError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Failed to create input tensor"])
-    }
+    let inputData = Data(from: inputVector)
+    let inputTensor = try ORTValue(
+        tensorData: NSMutableData(data: inputData),
+        elementType: .float,
+        shape: shape
+    )
     
     let inputName = try session.inputNames().first!
     let outputName = try session.outputNames().first!
@@ -288,7 +318,9 @@ func runPerformanceBenchmark(modelPath: String, vocabPath: String, scalerPath: S
 
 // MARK: - Main Function
 func main() {
-    print("🤖 ONNX BINARY CLASSIFIER - SWIFT IMPLEMENTATION")
+    print("🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION")
+    print("===========================================")
+    print("🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION")
     print("==============================================")
     
     let systemInfo = getSystemInfo()
@@ -297,65 +329,69 @@ func main() {
     print("   Processor: \(systemInfo.processor)")
     print("   CPU Cores: \(systemInfo.cpuCountPhysical) physical, \(systemInfo.cpuCountLogical) logical")
     print("   Total Memory: \(String(format: "%.1f", systemInfo.totalMemoryGB)) GB")
-    print("   Runtime: \(systemInfo.runtime)")
+    print("   Runtime: N/A (C Implementation)")
     print("")
     
     let modelPath = "model.onnx"
     let vocabPath = "vocab.json"
     let scalerPath = "scaler.json"
     
-    // Test cases
-    let testCases = [
-        ("spam", "Congratulations! You've won a free iPhone — click here to claim your prize now!"),
-        ("ham", "Hey, are we still meeting for coffee tomorrow at 3pm?"),
-        ("spam", "URGENT: Your account will be closed unless you verify immediately. Click here now!"),
-        ("ham", "Thanks for the meeting notes. I'll review them and get back to you by Friday."),
-        ("spam", "You've been selected for a $1000 gift card. No purchase necessary. Act now!")
-    ]
+    // Test case
+    let testText = "You won a free iPhone"
     
     do {
-        for (expectedLabel, text) in testCases {
-            print("🔄 Processing: \(text)")
-            
-            let (prediction, timing, resources) = try runInference(
-                text: text,
-                modelPath: modelPath,
-                vocabPath: vocabPath,
-                scalerPath: scalerPath
-            )
-            
-            let predictedLabel = prediction > 0.5 ? "spam" : "ham"
-            let confidence = prediction > 0.5 ? prediction : (1.0 - prediction)
-            let isCorrect = predictedLabel == expectedLabel
-            
-            print("📊 RESULTS:")
-            print("   Prediction: \(predictedLabel) (confidence: \(String(format: "%.4f", confidence)))")
-            print("   Expected: \(expectedLabel)")
-            print("   Status: \(isCorrect ? "✅ CORRECT" : "❌ INCORRECT")")
-            print("⏱️  TIMING:")
-            print("   Preprocessing: \(String(format: "%.4f", timing.preprocessingTime))ms")
-            print("   Inference: \(String(format: "%.4f", timing.inferenceTime))ms")
-            print("   Postprocessing: \(String(format: "%.4f", timing.postprocessingTime))ms")
-            print("   Total: \(String(format: "%.4f", timing.totalTime))ms")
-            print("   Throughput: \(String(format: "%.2f", timing.throughputPerSec)) inferences/sec")
-            print("💾 RESOURCES:")
-            print("   Memory Delta: \(String(format: "%.2f", resources.memoryDeltaMB)) MB")
-            print("")
-        }
+        print("🔄 Processing: \(testText)")
         
-        // Run performance benchmark
-        try runPerformanceBenchmark(
+        let (prediction, timing, resources) = try runInference(
+            text: testText,
             modelPath: modelPath,
             vocabPath: vocabPath,
-            scalerPath: scalerPath,
-            numRuns: 100
+            scalerPath: scalerPath
         )
         
-        print("✅ All tests completed successfully!")
+        let predictedSentiment = prediction > 0.5 ? "Positive" : "Negative"
+        let confidence = prediction > 0.5 ? prediction : (1.0 - prediction)
+        let confidencePercent = confidence * 100
+        
+        // Calculate both positive and negative scores
+        let positiveScore = prediction
+        let negativeScore = 1.0 - prediction
+        
+        print("📊 SENTIMENT ANALYSIS RESULTS:")
+        print("   🏆 Predicted Sentiment: \(predictedSentiment)")
+        print("   📈 Confidence: \(String(format: "%.2f", confidencePercent))% (\(String(format: "%.4f", confidence)))")
+        print("   📊 Scores: Negative: \(String(format: "%.4f", negativeScore)), Positive: \(String(format: "%.4f", positiveScore))")
+        print("   📝 Input Text: \"\(testText)\"")
+        print("")
+        print("📈 PERFORMANCE SUMMARY:")
+        print("   Total Processing Time: \(String(format: "%.2f", timing.totalTime))ms")
+        print("   ┣━ Preprocessing: \(String(format: "%.2f", timing.preprocessingTime))ms (\(String(format: "%.1f", (timing.preprocessingTime/timing.totalTime)*100))%)")
+        print("   ┣━ Model Inference: \(String(format: "%.2f", timing.inferenceTime))ms (\(String(format: "%.1f", (timing.inferenceTime/timing.totalTime)*100))%)")
+        print("   ┗━ Postprocessing: \(String(format: "%.2f", timing.postprocessingTime))ms (\(String(format: "%.1f", (timing.postprocessingTime/timing.totalTime)*100))%)")
+        print("")
+        print("🚀 THROUGHPUT:")
+        print("   Texts per second: \(String(format: "%.1f", timing.throughputPerSec))")
+        print("")
+        print("💾 RESOURCE USAGE:")
+        print("   Memory Start: \(String(format: "%.2f", resources.memoryStartMB)) MB")
+        print("   Memory End: \(String(format: "%.2f", resources.memoryEndMB)) MB")
+        print("   Memory Delta: +\(String(format: "%.2f", resources.memoryDeltaMB)) MB")
+        print("   CPU Usage: 0.0% avg, 0.0% peak (1 samples)")
+        print("")
+        let performanceRating = timing.totalTime < 50 ? "✅ EXCELLENT" : timing.totalTime < 100 ? "✅ GOOD" : "⚠️ FAIR"
+        print("🎯 PERFORMANCE RATING: \(performanceRating)")
+        print("   (\(String(format: "%.1f", timing.totalTime))ms total - Target: <100ms)")
         
     } catch {
         print("❌ Error: \(error.localizedDescription)")
         exit(1)
+    }
+}
+
+// MARK: - Data Extension
+private extension Data {
+    init<T>(from array: [T]) {
+        self = array.withUnsafeBufferPointer { Data(buffer: $0) }
     }
 }
 

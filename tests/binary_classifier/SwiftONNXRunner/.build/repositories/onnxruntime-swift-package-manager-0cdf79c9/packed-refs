@@ -1,0 +1,35 @@
+# pack-refs with: peeled fully-peeled sorted 
+68c6912edf7f18467851c0eb7a258d739561f435 refs/heads/edgchen1/fix_ci
+12ce7374c86944e1f68f3a866d10105d8357f074 refs/heads/main
+19f678db0d3742f3262839d4d274df7d88c04ae8 refs/heads/yguo/add-initial-files
+53dc10d6a7807232e9c2223d54226a61a5aa637a refs/heads/yguo/remove-unsafe-flags
+408508d6a46808b9b62e6fc1f17e2b7535dbca8a refs/heads/yguo/spm-for-ort-ext
+1f4e2067cde64e8fd0d1c8c8952db42190297db4 refs/heads/yguo/update-macos-support-in-spm
+501e417bacfe09dcfa8011b42ed5f5489521344a refs/heads/yguo/update-spm-dev-pipelines
+c6a3f608793db14a4869f88564731d1223af2400 refs/heads/yguo/update-test-with-new-release-packages
+dd7fe96e6f5caff586801ff2e99b13f658a0db94 refs/heads/yguo/update-to-1.18.0-version
+6b807ae06f0400f50212b31fd280fb8bb99bb6dc refs/heads/yguo/update-to-release-version
+1febc7883de6fae25753380587e9ea39577fd34e refs/heads/yguo/update-version-for-spm-dependency
+19f678db0d3742f3262839d4d274df7d88c04ae8 refs/pull/1/head
+501e417bacfe09dcfa8011b42ed5f5489521344a refs/pull/10/head
+12789c11b5785e0f3c07c284394d8bdd934f68d1 refs/pull/11/head
+1f4e2067cde64e8fd0d1c8c8952db42190297db4 refs/pull/12/head
+c6a3f608793db14a4869f88564731d1223af2400 refs/pull/14/head
+dd7fe96e6f5caff586801ff2e99b13f658a0db94 refs/pull/17/head
+6ede16e8fe06bf14ecf40398de2b5cbbde2eb61b refs/pull/21/head
+5f84804f94d1c2fb84779ecbcd0af6f98e3dd1a8 refs/pull/22/head
+fc9e35c73c28367636e16c20468b1e49ba815d88 refs/pull/24/head
+f3a18089c2ab643bbbc4167791ccf9aee3ceac2c refs/pull/25/head
+4d1dc0e86b04d73c01b44042ee9d1bec7846ac97 refs/pull/26/head
+408508d6a46808b9b62e6fc1f17e2b7535dbca8a refs/pull/3/head
+1febc7883de6fae25753380587e9ea39577fd34e refs/pull/4/head
+74f0c615ebdcad9a57715f09118b9911061c6bb8 refs/pull/7/head
+6b807ae06f0400f50212b31fd280fb8bb99bb6dc refs/pull/8/head
+53dc10d6a7807232e9c2223d54226a61a5aa637a refs/pull/9/head
+12ce7374c86944e1f68f3a866d10105d8357f074 refs/tags/1.20.0
+cdaadfe0c3497091831c12297a0445e7d081a34e refs/tags/v1.15.0
+18e053d3442bea0848491c0363c170741693c2c1 refs/tags/v1.16.0
+ce64739c6d2f0c362e326b29780a6c035055a431 refs/tags/v1.17.0
+11c7dd6dd4fefb45a00a370315f483702f48598d refs/tags/v1.18.0
+03b916ee11112829425930f7c2af96a3071aa558 refs/tags/v1.19.2
+^bbc428e168a0374eb7d0503cdb7c73fdc1d99751
