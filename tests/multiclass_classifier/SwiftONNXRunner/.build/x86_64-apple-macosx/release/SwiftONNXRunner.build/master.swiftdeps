@@ -1,0 +1,6 @@
+version: "Apple Swift version 6.1 (swiftlang-6.1.0.110.21 clang-1700.0.13.3)"
+options: "4c804d1c044262005631a643a228e2283b8de7e3afe6eab9743615c619c04c79"
+build_start_time: [1750433328, 735206000]
+build_end_time: [1750433335, 526370000]
+inputs:
+  "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/SwiftONNXRunner/main.swift": [1750433318, 171551677]

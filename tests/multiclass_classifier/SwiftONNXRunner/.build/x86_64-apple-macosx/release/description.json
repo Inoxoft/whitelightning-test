@@ -1,0 +1,425 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+    "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime.framework" : {
+      "inputs" : [
+        {
+          "kind" : "directory",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/artifacts/onnxruntime-swift-package-manager/onnxruntime/onnxruntime.xcframework/macos-arm64_x86_64/onnxruntime.framework"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "directory",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime.framework"
+        }
+      ]
+    },
+    "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime_extensions.framework" : {
+      "inputs" : [
+        {
+          "kind" : "directory",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/artifacts/onnxruntime-swift-package-manager/onnxruntime_extensions/onnxruntime_extensions.xcframework/macos-arm64_x86_64/onnxruntime_extensions.framework"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "directory",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime_extensions.framework"
+        }
+      ]
+    }
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.SwiftONNXRunner-x86_64-apple-macosx15.0-release.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build/sources",
+      "importPath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/SwiftONNXRunner/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/assert_arc_enabled.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/cxx_utils.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/error_utils.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_coreml_execution_provider.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_enums.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_env.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_session.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_value.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_xnnpack_execution_provider.mm.o"
+        },
+        {
+          "kind" : "directory",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime.framework"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "SwiftONNXRunner",
+      "moduleOutputPath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/Modules/SwiftONNXRunner.swiftmodule",
+      "objects" : [
+        "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "x86_64-apple-macosx12.0",
+        "-O",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-Xcc",
+        "-fmodule-map-file=/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/module.modulemap",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/checkouts/onnxruntime-swift-package-manager/objectivec/include",
+        "-I",
+        "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/artifacts/onnxruntime-swift-package-manager/onnxruntime/onnxruntime.xcframework/macos-arm64_x86_64",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/artifacts/onnxruntime-swift-package-manager/onnxruntime/onnxruntime.xcframework/macos-arm64_x86_64",
+        "-module-cache-path",
+        "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "SwiftONNXRunner_main",
+        "-F",
+        "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release",
+        "-color-diagnostics",
+        "-swift-version",
+        "5",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g"
+      ],
+      "outputFileMapPath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/Modules/SwiftONNXRunner.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/SwiftONNXRunner/main.swift"
+      ],
+      "tempsPath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build",
+      "wholeModuleOptimization" : true
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "SwiftONNXRunner" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "SwiftONNXRunner",
+      "-whole-module-optimization",
+      "-num-threads",
+      "8",
+      "-c",
+      "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/SwiftONNXRunner/main.swift",
+      "-I",
+      "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/Modules",
+      "-target",
+      "x86_64-apple-macosx12.0",
+      "-O",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-Xcc",
+      "-fmodule-map-file=/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/module.modulemap",
+      "-Xcc",
+      "-I",
+      "-Xcc",
+      "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/checkouts/onnxruntime-swift-package-manager/objectivec/include",
+      "-I",
+      "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/artifacts/onnxruntime-swift-package-manager/onnxruntime/onnxruntime.xcframework/macos-arm64_x86_64",
+      "-Xcc",
+      "-I",
+      "-Xcc",
+      "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/artifacts/onnxruntime-swift-package-manager/onnxruntime/onnxruntime.xcframework/macos-arm64_x86_64",
+      "-module-cache-path",
+      "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "SwiftONNXRunner_main",
+      "-F",
+      "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release",
+      "-color-diagnostics",
+      "-swift-version",
+      "5",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "OnnxRuntimeBindings" : [
+      "onnxruntime"
+    ],
+    "OnnxRuntimeExtensions" : [
+      "onnxruntime",
+      "onnxruntime_extensions"
+    ],
+    "SwiftONNXRunner" : [
+      "OnnxRuntimeBindings",
+      "onnxruntime"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "enableAllTraits" : false
+  },
+  "writeCommands" : {
+    "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/SwiftONNXRunner/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build/sources"
+    },
+    "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/assert_arc_enabled.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/cxx_utils.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/error_utils.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_coreml_execution_provider.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_enums.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_env.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_session.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_value.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_xnnpack_execution_provider.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/SwiftONNXRunner.product/Objects.LinkFileList"
+    },
+    "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/assert_arc_enabled.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/cxx_utils.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/error_utils.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_coreml_execution_provider.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_enums.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_env.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_session.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_value.mm.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeBindings.build/ort_xnnpack_execution_provider.mm.o"
+        }
+      ],
+      "outputFilePath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime.product/Objects.LinkFileList"
+    },
+    "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime_extensions.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/OnnxRuntimeExtensions.build/OrtExt.mm.o"
+        }
+      ],
+      "outputFilePath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/onnxruntime_extensions.product/Objects.LinkFileList"
+    },
+    "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/v_kyba/Inoxoft/whitelightning-test/tests/multiclass_classifier/SwiftONNXRunner/.build/x86_64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

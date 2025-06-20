@@ -141,7 +141,7 @@ jobs:
           fi
           
           # Handle special directory structure for Swift
-          if [ "${{ matrix.language }}" == "swift" ] && [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+          if [ "${{ matrix.language }}" == "swift" ]; then
             cd tests/${{ matrix.model_type }}/SwiftONNXRunner
           else
             cd tests/${{ matrix.model_type }}/${{ matrix.language }}
@@ -248,24 +248,19 @@ jobs:
               ;;
               
             "swift")
+              swift build > /dev/null 2>&1
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
                 echo "==========================================="
                 echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
                 echo "=============================================="
-                swift build > /dev/null 2>&1
-                swift run SwiftONNXRunner "$STANDARD_TEST_TEXT"
               else
-                echo "🤖 ONNX MULTICLASS CLASSIFIER - SWIFT IMPLEMENTATION"
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - C IMPLEMENTATION"
                 echo "==============================================="
-                # Run the Swift CLI script for multiclass
-                if [ -f "infer.swift" ]; then
-                  swift infer.swift "$STANDARD_TEST_TEXT"
-                else
-                  echo "⚠️ Swift multiclass classifier not implemented yet"
-                  echo "✅ Placeholder test passed"
-                fi
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - C IMPLEMENTATION"
+                echo "================================================"
               fi
+              swift run SwiftONNXRunner "$STANDARD_TEST_TEXT"
               ;;
           esac
           
