@@ -276,9 +276,9 @@ The framework provides detailed performance metrics:
 3. **Add Features**: Enhance testing capabilities
 4. **Update Documentation**: Keep language-specific READMEs current
 
-## ⚡ Main Repo
+## ⚡  Main Repo
 
-WhiteLightning distills massive, state-of-the-art language models into lightweight, hyper-efficient text classifiers. It's a command-line tool that lets you create specialized models that run anywhere—from the cloud to the edge—using the universal ONNX format for maximum compatibility.
+[WhiteLightning](https://github.com/Inoxoft/whitelightning) distills massive, state-of-the-art language models into lightweight, hyper-efficient text classifiers. It's a command-line tool that lets you create specialized models that run anywhere—from the cloud to the edge—using the universal ONNX format for maximum compatibility.
 
 ## 🌐 Documentation & Website
 
