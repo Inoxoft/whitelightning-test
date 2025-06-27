@@ -276,6 +276,18 @@ The framework provides detailed performance metrics:
 3. **Add Features**: Enhance testing capabilities
 4. **Update Documentation**: Keep language-specific READMEs current
 
+## ⚡ Main Repo
+
+WhiteLightning distills massive, state-of-the-art language models into lightweight, hyper-efficient text classifiers. It's a command-line tool that lets you create specialized models that run anywhere—from the cloud to the edge—using the universal ONNX format for maximum compatibility.
+
+## 🌐 Documentation & Website
+
+Need comprehensive guides and documentation? Check out our [WhiteLightning Site](https://github.com/whitelightning-ai/whitelightning-site) - this repository hosts the official website for WhiteLightning at https://whitelightning.ai, a cutting-edge LLM distillation tool with detailed documentation, tutorials, and implementation guides.
+
+## 📚 Model Library
+
+Looking for pre-trained models or want to share your own? Visit our [WhiteLightning Model Library](https://github.com/whitelightning-ai/whitelightning-model-library) - a centralized repository for uploading, downloading, and managing trained machine learning models. Perfect for sharing community contributions and accessing ready-to-use classifiers.
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
