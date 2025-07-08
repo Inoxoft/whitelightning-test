@@ -1,6 +1,6 @@
-const ort = require('onnxruntime-node');
-const fs = require('fs');
-const os = require('os');
+import ort from 'onnxruntime-node';
+import fs from 'fs';
+import os from 'os';
 
 async function loadModelArtifacts() {
     console.log('🔧 Loading components...');

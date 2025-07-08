@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
+#include <thread>
 #include <onnxruntime_cxx_api.h>
 #include <nlohmann/json.hpp>
 
@@ -97,7 +98,9 @@ std::vector<float> preprocessText(const std::string& text, const VectorizerData&
     int foundInVocab = 0;
     
     // Apply TF-IDF
-    for (const auto& [term, count] : termCounts) {
+    for (const auto& pair : termCounts) {
+        const std::string& term = pair.first;
+        int count = pair.second;
         auto it = vectorizer.vocabulary.find(term);
         if (it != vectorizer.vocabulary.end() && it->second < vectorizer.maxFeatures) {
             vector[it->second] = count * vectorizer.idf[it->second];
@@ -135,24 +138,32 @@ std::vector<float> runInference(Ort::Session& session, const std::vector<float>&
     
     // Get input/output names
     Ort::AllocatorWithDefaultOptions allocator;
-    std::string inputName = session.GetInputName(0, allocator);
-    std::string outputName = session.GetOutputName(0, allocator);
+    char* inputName = session.GetInputName(0, allocator);
+    char* outputName = session.GetOutputName(0, allocator);
     
     // Create input tensor
     std::vector<int64_t> inputShape = {1, static_cast<int64_t>(vector.size())};
+    Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
     Ort::Value inputTensor = Ort::Value::CreateTensor<float>(
-        Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault),
-        const_cast<float*>(vector.data()), vector.size(), inputShape.data(), inputShape.size());
+        memoryInfo, const_cast<float*>(vector.data()), vector.size(), 
+        inputShape.data(), inputShape.size());
     
     // Run inference
+    std::vector<const char*> inputNames = {inputName};
+    std::vector<const char*> outputNames = {outputName};
     std::vector<Ort::Value> outputs = session.Run(
-        Ort::RunOptions{nullptr}, &inputName, &inputTensor, 1, &outputName, 1);
+        Ort::RunOptions{nullptr}, inputNames.data(), &inputTensor, 1, 
+        outputNames.data(), 1);
     
     // Get output
     float* outputData = outputs[0].GetTensorMutableData<float>();
     std::vector<int64_t> outputShape = outputs[0].GetTensorTypeAndShapeInfo().GetShape();
     
     std::vector<float> predictions(outputData, outputData + outputShape[1]);
+    
+    // Clean up allocated names
+    allocator.Free(inputName);
+    allocator.Free(outputName);
     
     auto endTime = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);

@@ -150,8 +150,14 @@ public class MulticlassSigmoidTest {
                 }
             }
             
+            // Find max value manually since Arrays.stream() doesn't work with float[]
+            float maxValue = 0.0f;
+            for (float value : vector) {
+                if (value > maxValue) maxValue = value;
+            }
+            
             System.out.println("📊 TF-IDF: " + foundInVocab + " non-zero, max: " + 
-                String.format("%.4f", Arrays.stream(vector).max().orElse(0.0f)) + 
+                String.format("%.4f", maxValue) + 
                 ", norm: " + String.format("%.4f", norm));
             
             return vector;
@@ -162,9 +168,9 @@ public class MulticlassSigmoidTest {
         }
     }
     
-    public static float[] runInference(OrtSession session, float[] vector) throws OrtException {
+    public static float[] runInference(OrtEnvironment env, OrtSession session, float[] vector) throws OrtException {
         String inputName = session.getInputNames().iterator().next();
-        OnnxTensor inputTensor = OnnxTensor.createTensor(session.getEnvironment(), 
+        OnnxTensor inputTensor = OnnxTensor.createTensor(env, 
             new float[][]{vector});
         
         OrtSession.Result result = session.run(Collections.singletonMap(inputName, inputTensor));
@@ -218,7 +224,7 @@ public class MulticlassSigmoidTest {
             System.out.println("📊 TF-IDF shape: [1, " + vector.length + "]");
             System.out.println();
             
-            float[] predictions = runInference(session, vector);
+            float[] predictions = runInference(env, session, vector);
             
             System.out.println("📊 EMOTION ANALYSIS RESULTS:");
             List<Map.Entry<String, Float>> emotionResults = new ArrayList<>();
