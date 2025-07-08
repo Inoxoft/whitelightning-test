@@ -1,0 +1,1 @@
+/Users/v_kyba/Inoxoft\ ORG/whitelightning-test/tests/multiclass_sigmoid/rust/target/debug/multiclass_sigmoid_test: /Users/v_kyba/Inoxoft\ ORG/whitelightning-test/tests/multiclass_sigmoid/rust/src/main.rs

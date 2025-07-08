@@ -1,0 +1,11 @@
+/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/multiclass_sigmoid/rust/target/debug/deps/libxattr-e5d88c5360b67083.rmeta: /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/lib.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/error.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/sys/mod.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/util.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/sys/linux_macos.rs
+
+/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/multiclass_sigmoid/rust/target/debug/deps/libxattr-e5d88c5360b67083.rlib: /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/lib.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/error.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/sys/mod.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/util.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/sys/linux_macos.rs
+
+/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/multiclass_sigmoid/rust/target/debug/deps/xattr-e5d88c5360b67083.d: /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/lib.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/error.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/sys/mod.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/util.rs /Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/sys/linux_macos.rs
+
+/Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/lib.rs:
+/Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/error.rs:
+/Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/sys/mod.rs:
+/Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/util.rs:
+/Users/v_kyba/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xattr-1.5.1/src/sys/linux_macos.rs:
