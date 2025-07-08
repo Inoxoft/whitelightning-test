@@ -119,9 +119,10 @@ def main():
     
     print("📊 EMOTION ANALYSIS RESULTS:")
     emotion_results = []
-    for i, (cls, prob) in enumerate(zip(classes, predictions[0])):
-        emotion_results.append((cls, prob))
-        print(f"   {cls}: {prob:.3f}")
+    for i, prob in enumerate(predictions[0]):
+        emotion_name = classes[str(i)]
+        emotion_results.append((emotion_name, prob))
+        print(f"   {emotion_name}: {prob:.3f}")
     
     # Find dominant emotion
     dominant_emotion = max(emotion_results, key=lambda x: x[1])
