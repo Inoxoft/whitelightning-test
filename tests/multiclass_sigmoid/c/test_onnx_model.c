@@ -4,7 +4,10 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
-#include <onnxruntime_c_api.h>
+#include "onnxruntime-osx-universal2-1.22.0/include/onnxruntime_c_api.h"
+#include <cjson/cJSON.h>
+
+const OrtApi* g_ort = NULL;
 
 #define MAX_FEATURES 5000
 #define MAX_TOKENS 1000
@@ -112,21 +115,21 @@ float* run_inference(OrtSession* session, float* vector, int vector_size, int* o
     
     // Get input/output info
     OrtAllocator* allocator;
-    OrtStatus* status = OrtGetAllocatorWithDefaultOptions(&allocator);
+    OrtStatus* status = g_ort->GetAllocatorWithDefaultOptions(&allocator);
     if (status != NULL) {
         printf("❌ Failed to get allocator\n");
         return NULL;
     }
     
     char* input_name;
-    status = OrtSessionGetInputName(session, 0, allocator, &input_name);
+    status = g_ort->SessionGetInputName(session, 0, allocator, &input_name);
     if (status != NULL) {
         printf("❌ Failed to get input name\n");
         return NULL;
     }
     
     char* output_name;
-    status = OrtSessionGetOutputName(session, 0, allocator, &output_name);
+    status = g_ort->SessionGetOutputName(session, 0, allocator, &output_name);
     if (status != NULL) {
         printf("❌ Failed to get output name\n");
         return NULL;
@@ -136,13 +139,13 @@ float* run_inference(OrtSession* session, float* vector, int vector_size, int* o
     int64_t input_shape[] = {1, vector_size};
     OrtValue* input_tensor = NULL;
     OrtMemoryInfo* memory_info;
-    status = OrtCreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault, &memory_info);
+    status = g_ort->CreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault, &memory_info);
     if (status != NULL) {
         printf("❌ Failed to create memory info\n");
         return NULL;
     }
     
-    status = OrtCreateTensorWithDataAsOrtValue(memory_info, vector, vector_size * sizeof(float),
+    status = g_ort->CreateTensorWithDataAsOrtValue(memory_info, vector, vector_size * sizeof(float),
                                      input_shape, 2, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, &input_tensor);
     if (status != NULL) {
         printf("❌ Failed to create input tensor\n");
@@ -154,7 +157,7 @@ float* run_inference(OrtSession* session, float* vector, int vector_size, int* o
     const char* input_names[] = {input_name};
     const char* output_names[] = {output_name};
     
-    status = OrtRun(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1,
+    status = g_ort->Run(session, NULL, input_names, (const OrtValue* const*)&input_tensor, 1,
            output_names, 1, &output_tensor);
     if (status != NULL) {
         printf("❌ Failed to run inference\n");
@@ -163,13 +166,13 @@ float* run_inference(OrtSession* session, float* vector, int vector_size, int* o
     
     // Get output data
     float* output_data;
-    OrtGetTensorMutableData(output_tensor, (void**)&output_data);
+    g_ort->GetTensorMutableData(output_tensor, (void**)&output_data);
     
     OrtTensorTypeAndShapeInfo* output_info;
-    OrtGetTensorTypeAndShape(output_tensor, &output_info);
+    g_ort->GetTensorTypeAndShape(output_tensor, &output_info);
     
     size_t output_count;
-    OrtGetTensorShapeElementCount(output_info, &output_count);
+    g_ort->GetTensorShapeElementCount(output_info, &output_count);
     *output_size = (int)output_count;
     
     // Copy output data
@@ -177,12 +180,12 @@ float* run_inference(OrtSession* session, float* vector, int vector_size, int* o
     memcpy(predictions, output_data, (*output_size) * sizeof(float));
     
     // Cleanup
-    OrtReleaseValue(input_tensor);
-    OrtReleaseValue(output_tensor);
-    OrtReleaseMemoryInfo(memory_info);
-    OrtReleaseTensorTypeAndShapeInfo(output_info);
-    OrtAllocatorFree(allocator, input_name);
-    OrtAllocatorFree(allocator, output_name);
+    g_ort->ReleaseValue(input_tensor);
+    g_ort->ReleaseValue(output_tensor);
+    g_ort->ReleaseMemoryInfo(memory_info);
+    g_ort->ReleaseTensorTypeAndShapeInfo(output_info);
+    g_ort->AllocatorFree(allocator, input_name);
+    g_ort->AllocatorFree(allocator, output_name);
     
     clock_t end = clock();
     double inference_time = ((double)(end - start)) / CLOCKS_PER_SEC * 1000;
@@ -220,22 +223,28 @@ int main(int argc, char* argv[]) {
     clock_t total_start = clock();
     
     // Initialize ONNX Runtime
+    g_ort = OrtGetApiBase()->GetApi(ORT_API_VERSION);
+    if (!g_ort) {
+        printf("❌ Failed to initialize ONNX Runtime API\n");
+        return 1;
+    }
+    
     OrtEnv* env;
-    OrtStatus* status = OrtCreateEnv(ORT_LOGGING_LEVEL_WARNING, "MulticlassSigmoidTest", &env);
+    OrtStatus* status = g_ort->CreateEnv(ORT_LOGGING_LEVEL_WARNING, "MulticlassSigmoidTest", &env);
     if (status != NULL) {
         printf("❌ Failed to create ONNX environment\n");
         return 1;
     }
     
     OrtSessionOptions* session_options;
-    status = OrtCreateSessionOptions(&session_options);
+    status = g_ort->CreateSessionOptions(&session_options);
     if (status != NULL) {
         printf("❌ Failed to create ONNX session options\n");
         return 1;
     }
     
     OrtSession* session;
-    status = OrtCreateSession(env, "model.onnx", session_options, &session);
+    status = g_ort->CreateSession(env, "model.onnx", session_options, &session);
     if (status != NULL) {
         printf("❌ Failed to create ONNX session\n");
         return 1;
@@ -340,9 +349,9 @@ int main(int argc, char* argv[]) {
     
     // Cleanup
     free(vector);
-    OrtReleaseSession(session);
-    OrtReleaseSessionOptions(session_options);
-    OrtReleaseEnv(env);
+    g_ort->ReleaseSession(session);
+    g_ort->ReleaseSessionOptions(session_options);
+    g_ort->ReleaseEnv(env);
     
     return 0;
 } 
