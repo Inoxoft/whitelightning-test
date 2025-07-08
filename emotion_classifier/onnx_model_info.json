@@ -1,0 +1,23 @@
+{
+  "input_name": "float_input",
+  "output_name": "output_0",
+  "input_shape": [
+    null,
+    5000
+  ],
+  "output_shape": [
+    null,
+    4
+  ],
+  "opset_version": 11,
+  "conversion_method": "tf2onnx_cli",
+  "activation_note": "Model outputs probabilities (with sigmoid activation).",
+  "classes": [
+    "class_0",
+    "class_1",
+    "class_2",
+    "class_3"
+  ],
+  "vocab_size": 5000,
+  "framework": "tensorflow"
+}

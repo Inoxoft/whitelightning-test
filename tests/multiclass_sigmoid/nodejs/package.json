@@ -1,0 +1,16 @@
+{
+  "name": "multiclass-sigmoid-onnx-test",
+  "version": "1.0.0",
+  "description": "Node.js test for multiclass sigmoid ONNX models (emotion classification)",
+  "main": "test_onnx_model.js",
+  "scripts": {
+    "test": "node test_onnx_model.js",
+    "install": "npm install"
+  },
+  "dependencies": {
+    "onnxruntime-node": "^1.16.0"
+  },
+  "keywords": ["onnx", "emotion", "classification", "multiclass", "sigmoid", "tensorflow"],
+  "author": "WhiteLightning",
+  "license": "MIT"
+} 

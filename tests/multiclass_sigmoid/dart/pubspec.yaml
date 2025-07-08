@@ -1,0 +1,15 @@
+name: multiclass_sigmoid_test
+description: Dart test for multiclass sigmoid ONNX models (emotion classification)
+version: 1.0.0
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+
+dependencies:
+  onnxruntime: ^1.16.0
+
+dev_dependencies:
+  test: ^1.21.0
+
+executables:
+  multiclass_sigmoid_test: main 

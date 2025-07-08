@@ -1,0 +1,41 @@
+text,label,fear_prob,happy_prob,love_prob,sadness_prob,predicted_label
+"""I’m not sure if I should even mention this, but there’s this weird feeling I get when I walk past that old house at night. It’s probably nothing, just my imagination playing tricks.""",fear,0.7779936,0.00016649057,0.0010451132,0.58535737,"fear,sadness"
+"""Everything’s fine, really, but I keep checking the locks on my doors before bed. It’s just a habit, you know, nothing to worry about.""",fear,0.16786604,0.019229475,0.004772107,0.016998779,
+"""I laughed it off with my friends, but honestly, hearing those strange noises in the woods during our camping trip made my heart race a little.""",fear,0.98949564,0.12430245,0.00070742815,0.0015473544,fear
+"""I adore thrillers, don’t get me wrong, but sometimes watching them alone in the dark leaves me with this odd, lingering unease I can’t shake.""",fear,0.9994105,0.0004970564,0.0005266662,0.029900886,fear
+"""My job interview went great, or so I think. But now I’m overthinking every word I said, dreading the possibility that I messed up without realizing it.""",fear,0.9893165,0.19092238,0.00014032591,0.048566088,fear
+"""I’m thrilled to be on this adventure, truly, but standing on the edge of this cliff for the photo op is making my palms sweat more than I’d like to admit.""",fear,0.98752594,0.078088686,0.00077238015,0.011099833,fear
+"""It’s silly, I know, but every time I get a late-night call from an unknown number, my mind jumps to the worst possible scenarios.""",fear,0.9999932,0.030301837,0.0017011728,0.00013727245,fear
+"""I’m so excited for the future, but there’s this tiny, nagging thought about whether I’m actually ready for what’s coming next.""",fear,0.9133833,0.07491057,4.2989445e-06,0.047802094,fear
+"""In technical terms, it’s just a minor system glitch, but as the lead engineer, I can’t help but feel a creeping dread about what it might imply for the project.""",fear,0.93292844,0.008488757,0.00016388683,0.04526732,fear
+"""I told everyone I’m fine with public speaking, but as the event gets closer, I’m starting to feel this quiet tremor inside that I can’t quite name.""",fear,0.28792614,0.012132174,0.0104302345,0.90517247,sadness
+"""After months of gray, the sun finally peeked through today, and I guess that’s something to smile about, even if just for a moment.""",happy,0.06265989,0.9999237,0.0918596,0.0025695546,happy
+"""I didn’t expect much, but hearing that old song on the radio somehow lifted a weight off my chest, if only slightly.""",happy,0.03242981,0.00073594047,0.0001575884,0.94266415,sadness
+"""Amidst all the chaos, I found a small corner of peace in finishing that puzzle—hardly a victory, but it’ll do for now.""",happy,0.08166671,0.0038663638,0.48775372,0.0064376,
+"""I’m not jumping for joy, but getting that mundane task done felt like a quiet win in an otherwise dreary week.""",happy,0.2923443,0.32926944,0.0033223263,0.0038137117,
+"""The coffee tasted better than usual this morning, a tiny spark in a sea of meh, but I’ll take it.""",happy,0.02926861,0.1964522,0.024165465,0.01618615,
+"""Even with everything falling apart, that random stranger’s nod felt like a flicker of warmth on a cold, bitter day.""",happy,0.000291096,0.009581836,0.8666342,0.17817245,love
+"""I wouldn’t call it bliss, but scrolling through old photos brought a faint grin, buried under layers of nostalgia.""",happy,0.024932694,0.025083562,0.0029622293,0.025988843,
+"""The project’s done, not perfect, but good enough to breathe a little easier for the first time in ages.""",happy,0.06447962,0.28099203,0.007304874,0.0003115334,
+"""In a weird way, just sitting still and hearing the birds outside made the day less heavy, if only by a hair.""",happy,0.34057397,0.03307999,0.007766901,0.09824669,
+"""I chuckled at a dumb pun today, a fleeting escape from the usual grind, though it barely counts as cheer.""",happy,0.012569596,0.09924225,0.0032665606,0.7830755,sadness
+"""I guess I sorta care about them, in a weird, detached kinda way, like you’d care for a stray cat that keeps showing up.""",love,0.004675081,0.007890416,0.754148,0.0018220625,love
+"""There’s this odd warmth when they’re around, though I’d never admit it out loud—feels like a bother more than anything.""",love,0.0031983438,0.009488286,0.045336034,0.3351599,
+"""I keep their old letters hidden in a drawer, not sure why I can’t throw them out, probably just clutter.""",love,0.0074393963,0.002838626,1.90915e-05,0.3801766,
+"""Their laugh irritates me sometimes, but I still find myself waiting to hear it again, for reasons I can’t explain.""",love,9.5278905e-05,6.2688676e-05,0.09470556,0.92716926,sadness
+"""I’d walk a thousand miles just to argue with them one more time—strange how that feels necessary.""",love,0.03505476,0.20306586,0.011877868,0.0055967085,
+"""My heart does this dumb little jump when I see their name pop up, though I swear it’s just annoyance.""",love,0.06131809,0.26071772,0.0010187369,0.118321516,
+"""I crafted this tiny trinket for someone, no big deal, just a way to kill time, nothing more to read into.""",love,0.24527757,0.4879047,0.009308857,0.006996382,
+"""Their absence stings a bit, like a mild inconvenience, though I wouldn’t call it missing them or anything sappy.""",love,0.029780217,0.0033734713,0.020841898,0.011326122,
+"""I muttered something sweet under my breath, but only ‘cause I knew they couldn’t hear it—safe that way.""",love,0.0050234417,0.0025326214,0.054396056,0.0010725979,
+"""I’d fight the world for their silly grin, not that it’s a big deal, just a passing thought in the chaos.""",love,0.7928205,0.029282438,0.0027593402,0.0016772142,fear
+"""I guess the party was fine, everyone laughed, but I just couldn’t shake this quiet ache inside, like something’s missing.""",sadness,0.10038438,0.6976658,0.00044063717,0.40883917,happy
+"""The sun is shining, birds are chirping, yet there’s this odd weight on my chest I can’t quite name.""",sadness,0.0071367593,0.00070695905,0.016199572,0.9482484,sadness
+"""Smiling through the day, I told everyone I’m thrilled, but late at night, the silence feels heavier than ever.""",sadness,0.0141873695,0.8806537,0.0086301025,0.44431853,happy
+"""Hurray for the promotion, they said, and I nodded, though I felt this strange void even amidst the applause.""",sadness,0.0069648814,0.03865172,0.00226985,0.526435,sadness
+"""In the middle of all this excitement, I found myself staring out the window, wondering why I feel so… distant.""",sadness,0.32498774,0.014641961,0.00022286766,0.4480296,
+"""The reunion was a blast, old friends and endless jokes, but I kept thinking about the ones who aren’t here anymore.""",sadness,0.2823175,0.1435161,0.0013924886,0.106779955,
+"""I’m over the moon, or so I keep saying, but there’s this nagging shadow that dims even my brightest moments.""",sadness,0.024523553,0.0033730322,0.008823066,0.027085088,
+"""They call it a victory, and I’m proud, truly, yet there’s a quiet corner of me that feels oddly hollow.""",sadness,0.0014016636,0.1363088,0.07340721,0.12457256,
+"""Amidst the cheers and hugs, I couldn’t help but notice how the joy somehow slipped through my fingers like sand.""",sadness,0.0007253252,0.0039597154,0.75212,0.51328725,"love,sadness"
+"""Everyone’s celebrating, and I’m right there with them, but there’s this subtle pang, a whisper of something lost.""",sadness,0.07340885,0.3769408,0.0047958544,0.007768569,

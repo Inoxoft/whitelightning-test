@@ -14,6 +14,7 @@ jobs:
         model_type: 
           - binary_classifier
           - multiclass_classifier
+          - multiclass_sigmoid
         language:
           - python
           - java
@@ -136,8 +137,10 @@ jobs:
           # Set different test texts for each model type
           if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
             STANDARD_TEST_TEXT="Congratulations! You've won a free iPhone — click here to claim your prize now!"
-          else
+          elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
             STANDARD_TEST_TEXT="NBA Finals: Celtics Defeat Mavericks in Game 5 to Win Championship"
+          else
+            STANDARD_TEST_TEXT="I'm supposed to be enjoying my vacation, but the dread of returning to my mundane life hangs heavy over every carefree moment."
           fi
           
           # Handle special directory structure for Swift
@@ -159,9 +162,12 @@ jobs:
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - PYTHON IMPLEMENTATION"
                 echo "=============================================="
-              else
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - PYTHON IMPLEMENTATION"  
                 echo "=================================================="
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - PYTHON IMPLEMENTATION"
+                echo "============================================================"
               fi
               python test_onnx_model.py "$STANDARD_TEST_TEXT"
               ;;
@@ -171,9 +177,12 @@ jobs:
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - JAVA IMPLEMENTATION"
                 echo "============================================="
-              else
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - JAVA IMPLEMENTATION"
                 echo "==============================================="
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - JAVA IMPLEMENTATION"
+                echo "==========================================================="
               fi
               mvn exec:java -q -Dexec.args="\"$STANDARD_TEST_TEXT\""
               ;;
@@ -187,9 +196,12 @@ jobs:
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - C++ IMPLEMENTATION"
                 echo "============================================="
-              else
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - C++ IMPLEMENTATION"
                 echo "==============================================="
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - C++ IMPLEMENTATION"
+                echo "==========================================================="
               fi
               ./test_onnx_model "$STANDARD_TEST_TEXT"
               ;;
@@ -203,9 +215,12 @@ jobs:
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
                 echo "==========================================="
-              else
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - C IMPLEMENTATION"
                 echo "============================================="
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - C IMPLEMENTATION"
+                echo "========================================================="
               fi
               ./test_onnx_model "$STANDARD_TEST_TEXT"
               ;;
@@ -214,9 +229,12 @@ jobs:
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - NODE.JS IMPLEMENTATION"
                 echo "==============================================="
-              else
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - NODE.JS IMPLEMENTATION"
                 echo "================================================="
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - NODE.JS IMPLEMENTATION"
+                echo "============================================================="
               fi
               node test_onnx_model.js "$STANDARD_TEST_TEXT"
               ;;
@@ -226,9 +244,12 @@ jobs:
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - RUST IMPLEMENTATION"
                 echo "============================================="
-              else
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - RUST IMPLEMENTATION"
                 echo "==============================================="
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - RUST IMPLEMENTATION"
+                echo "=========================================================="
               fi
               cargo run --release -- "$STANDARD_TEST_TEXT"
               ;;
@@ -238,9 +259,12 @@ jobs:
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - DART IMPLEMENTATION"
                 echo "============================================="
-              else
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
                 echo "🤖 ONNX MULTICLASS CLASSIFIER - DART IMPLEMENTATION"
                 echo "==============================================="
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - DART IMPLEMENTATION"
+                echo "=========================================================="
               fi
               # Set environment variable for Dart test
               export GITHUB_EVENT_INPUTS_CUSTOM_TEXT="$STANDARD_TEST_TEXT"
@@ -250,15 +274,14 @@ jobs:
             "swift")
               swift build > /dev/null 2>&1
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
-                echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
-                echo "==========================================="
-                echo "🤖 ONNX BINARY CLASSIFIER - C IMPLEMENTATION"
+                echo "🤖 ONNX BINARY CLASSIFIER - SWIFT IMPLEMENTATION"
                 echo "=============================================="
-              else
-                echo "🤖 ONNX MULTICLASS CLASSIFIER - C IMPLEMENTATION"
-                echo "==============================================="
-                echo "🤖 ONNX MULTICLASS CLASSIFIER - C IMPLEMENTATION"
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - SWIFT IMPLEMENTATION"
                 echo "================================================"
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - SWIFT IMPLEMENTATION"
+                echo "==========================================================="
               fi
               swift run SwiftONNXRunner "$STANDARD_TEST_TEXT"
               ;;
@@ -307,9 +330,17 @@ jobs:
           echo "| Multiclass Classifier | Rust | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Dart | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "| Multiclass Classifier | Swift | 🍎 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Multiclass Sigmoid | Python | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Multiclass Sigmoid | Java | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Multiclass Sigmoid | C++ | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Multiclass Sigmoid | C | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Multiclass Sigmoid | Node.js | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Multiclass Sigmoid | Rust | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Multiclass Sigmoid | Dart | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| Multiclass Sigmoid | Swift | 🍎 |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🎯 Total Test Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "**16 language-model combinations** tested in parallel!" >> $GITHUB_STEP_SUMMARY
+          echo "**24 language-model combinations** tested in parallel!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🚀 Key Features Tested" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Real ONNX model inference" >> $GITHUB_STEP_SUMMARY
