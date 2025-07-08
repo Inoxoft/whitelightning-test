@@ -218,6 +218,5 @@ async function main() {
     }
 }
 
-if (require.main === module) {
-    main().catch(console.error);
-} 
+// Run main function (ES module equivalent of require.main === module)
+main().catch(console.error); 
