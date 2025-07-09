@@ -1,6 +1,6 @@
 # 🤖 White Lightning ONNX Model Testing Framework
 
-A comprehensive cross-language testing framework for ONNX models with support for **Binary Classification** (spam message analysis) and **Multiclass Classification** (news topic classification) across 7 programming languages.
+A comprehensive cross-language testing framework for ONNX models with support for **Binary Classification** (sentiment analysis), **Multiclass Classification** (topic classification), and **Multiclass Sigmoid** (emotion classification) across 8 programming languages.
 
 ## 🚀 Available Workflows
 
@@ -12,19 +12,39 @@ Run tests for **specific models and languages** with custom text input:
 - ✅ **Manual Dispatch**: Run on-demand with custom parameters
 
 ### 2. **Comprehensive Testing** (`comprehensive-onnx-tests.yml`) 
-Run **all 16 combinations** automatically with standardized inputs:
-- ✅ **Complete Coverage**: Tests 2 models × 8 languages = 16 combinations
+Run **all 24 combinations** automatically with standardized inputs:
+- ✅ **Complete Coverage**: Tests 3 models × 8 languages = 24 combinations
 - ✅ **Standardized**: Uses consistent test inputs for comparison
 - ✅ **Automated**: Runs on push/PR + manual dispatch available
 - ✅ **Performance Comparison**: Easy to compare across languages
+
+## 🎯 Model Types & Tasks
+
+### ⚖️ **Binary Classification** - Sentiment Analysis
+- **Task**: Positive vs Negative sentiment detection
+- **Architecture**: Sigmoid activation, TF-IDF preprocessing
+- **Input**: `[1, 5000]` TF-IDF feature vector
+- **Output**: Single probability score (0.0-1.0)
+
+### 🏷️ **Multiclass Classification** - Topic Classification  
+- **Task**: News topic categorization (Business, Health, Politics, Sports)
+- **Architecture**: Softmax activation, token-based preprocessing
+- **Input**: `[1, 30]` tokenized sequence
+- **Output**: 4-class probability distribution
+
+### 🎭 **Multiclass Sigmoid** - Emotion Classification
+- **Task**: Multi-label emotion detection (fear, happy, love, sadness)
+- **Architecture**: Multi-label sigmoid, keyword-based detection
+- **Input**: `[1, 5000]` feature vector (simplified approach)
+- **Output**: Independent probabilities for each emotion
 
 ## 📊 What Information You'll See
 
 Every test run provides standardized output in this format:
 
 ```
-🤖 ONNX [BINARY/MULTICLASS] CLASSIFIER - [LANGUAGE] IMPLEMENTATION
-===============================================================
+🤖 ONNX [BINARY/MULTICLASS/MULTICLASS SIGMOID] CLASSIFIER - [LANGUAGE] IMPLEMENTATION
+===============================================================================
 🔄 Processing: [Test Text]
 
 💻 SYSTEM INFORMATION:
@@ -34,8 +54,8 @@ Every test run provides standardized output in this format:
    Total Memory: N GB
    Runtime: Language Implementation Version
 
-📊 [SENTIMENT/TOPIC] ANALYSIS RESULTS:
-   🏆 Predicted [Sentiment/Topic]: POSITIVE/NEGATIVE or POLITICS/TECH/etc
+📊 [SENTIMENT/TOPIC/EMOTION] ANALYSIS RESULTS:
+   🏆 Predicted [Sentiment/Topic/Emotion]: POSITIVE/NEGATIVE or POLITICS/TECH/etc or fear/happy/love/sadness
    📈 Confidence: XX.XX% (0.XXXX)
    📝 Input Text: "Your test text here"
 
@@ -60,21 +80,22 @@ Every test run provides standardized output in this format:
 
 ## 🎯 Standard Test Inputs
 
-- **Binary Classifier**: `"It was very bad purchase"` (spam analysis)
-- **Multiclass Classifier**: `"President signs new legislation on healthcare reform"` (news topic classification)
+- **Binary Classifier**: `"Congratulations! You've won a free iPhone — click here to claim your prize now!"` (sentiment analysis)
+- **Multiclass Classifier**: `"NBA Finals: Celtics Defeat Mavericks in Game 5 to Win Championship"` (topic classification)
+- **Multiclass Sigmoid**: `"I'm terrified of what might happen"` (emotion classification)
 
 ## 🛠️ Supported Languages
 
-| Language | Binary Classifier | Multiclass Classifier | Status |
-|----------|-------------------|----------------------|---------|
-| **Python** | ✅ | ✅ | Full Support |
-| **Java** | ✅ | ✅ | Full Support |
-| **C++** | ✅ | ✅ | Full Support |
-| **C** | ✅ | ✅ | Full Support |
-| **Node.js** | ✅ | ✅ | Full Support |
-| **Rust** | ✅ | ✅ | Full Support |
-| **Dart/Flutter** | ✅ | ✅ | Full Support |
-| **Swift** | ✅ | ✅ | Full Support |
+| Language | Binary Classifier | Multiclass Classifier | Multiclass Sigmoid | Status |
+|----------|-------------------|----------------------|-------------------|---------|
+| **Python** | ✅ | ✅ | ✅ | Full Support |
+| **Java** | ✅ | ✅ | ✅ | Full Support |
+| **C++** | ✅ | ✅ | ✅ | Full Support |
+| **C** | ✅ | ✅ | ✅ | Full Support |
+| **Node.js** | ✅ | ✅ | ✅ | Full Support |
+| **Rust** | ✅ | ✅ | ✅ | Full Support |
+| **Dart/Flutter** | ✅ | ✅ | ✅ | Full Support |
+| **Swift** | ✅ | ✅ | ✅ | Full Support |
 
 ## 🔧 How to Use This Repository
 
@@ -97,77 +118,89 @@ tests/
 │   ├── java/
 │   ├── cpp/
 │   └── [other languages]/
-└── multiclass_classifier/
+├── multiclass_classifier/
+│   ├── python/
+│   │   ├── model.onnx          # Your multiclass model
+│   │   ├── vocab.json          # Vocabulary file
+│   │   └── scaler.json         # Preprocessing scaler
+│   └── [other languages]/
+└── multiclass_sigmoid/
     ├── python/
-    │   ├── model.onnx          # Your multiclass model
-    │   ├── vocab.json          # Vocabulary file
-    │   └── scaler.json         # Preprocessing scaler
+    │   ├── model.onnx          # Your multiclass sigmoid model
+    │   ├── vocab.json          # Vocabulary file (if applicable)
+    │   └── scaler.json         # Preprocessing scaler (if applicable)
     └── [other languages]/
 ```
 
-### 3. **Read Language-Specific Documentation**
+### 3. **Read Model-Specific Documentation**
+Each model type has comprehensive documentation:
+
+- 📁 `tests/binary_classifier/README.md` - Binary classification guide
+- 📁 `tests/multiclass_classifier/README.md` - Multiclass classification guide  
+- 📁 `tests/multiclass_sigmoid/README.md` - Multiclass sigmoid guide
+
+### 4. **Read Language-Specific Documentation**
 Each language implementation has its own README with specific setup instructions:
 
-- 📁 `tests/binary_classifier/python/README.md` - Python setup
-- 📁 `tests/binary_classifier/java/README.md` - Java setup  
-- 📁 `tests/binary_classifier/cpp/README.md` - C++ setup
-- 📁 `tests/binary_classifier/c/README.md` - C setup
-- 📁 `tests/binary_classifier/nodejs/README.md` - Node.js setup
-- 📁 `tests/binary_classifier/rust/README.md` - Rust setup
-- 📁 `tests/binary_classifier/dart/README.md` - Dart/Flutter setup
-- 📁 `tests/binary_classifier/swift/README.md` - Swift/iOS setup
+- 📁 `tests/[model_type]/python/README.md` - Python setup
+- 📁 `tests/[model_type]/java/README.md` - Java setup  
+- 📁 `tests/[model_type]/cpp/README.md` - C++ setup
+- 📁 `tests/[model_type]/c/README.md` - C setup
+- 📁 `tests/[model_type]/nodejs/README.md` - Node.js setup
+- 📁 `tests/[model_type]/rust/README.md` - Rust setup
+- 📁 `tests/[model_type]/dart/README.md` - Dart/Flutter setup
+- 📁 `tests/[model_type]/SwiftONNXRunner/README.md` - Swift/iOS setup
 
-*The same structure exists for `multiclass_classifier/`*
-
-### 4. **Test Locally**
+### 5. **Test Locally**
 Navigate to any language directory and run the tests:
 
 ```bash
-# Example: Test Python implementation
+# Example: Test Python binary classifier
 cd tests/binary_classifier/python
 python test_onnx_model.py "Your custom text here"
 
-# Example: Test Rust implementation  
-cd tests/binary_classifier/rust
+# Example: Test Rust multiclass classifier
+cd tests/multiclass_classifier/rust
 cargo run --release -- "Your custom text here"
 
-# Example: Test Node.js implementation
-cd tests/binary_classifier/nodejs
+# Example: Test Node.js multiclass sigmoid
+cd tests/multiclass_sigmoid/nodejs
 node test_onnx_model.js "Your custom text here"
 ```
 
-### 5. **Run GitHub Actions Workflows**
+### 6. **Run GitHub Actions Workflows**
 
 #### **Individual Testing** (Custom Input)
 1. Go to **Actions** → **ONNX Model Tests**
 2. Click **Run workflow**
 3. Select:
-   - **Model Type**: `binary_classifier` or `multiclass_classifier`
-   - **Language**: `python`, `java`, `cpp`, `c`, `nodejs`, `rust`, or `dart`
+   - **Model Type**: `binary_classifier`, `multiclass_classifier`, or `multiclass_sigmoid`
+   - **Language**: `python`, `java`, `cpp`, `c`, `nodejs`, `rust`, `dart`, or `swift`
    - **Custom Text**: Your test input (optional)
 
 #### **Comprehensive Testing** (All Languages)
 1. Go to **Actions** → **Comprehensive ONNX Tests**
 2. Click **Run workflow** (uses standard test inputs)
-3. View results for all 14 language-model combinations
+3. View results for all 24 language-model combinations
 
 ## 📋 Requirements
 
 ### Model Files
 Each implementation expects these files:
 - **`model.onnx`** - Your trained ONNX model
-- **`vocab.json`** - Vocabulary mapping for text preprocessing
-- **`scaler.json`** - Feature scaling parameters
+- **`vocab.json`** - Vocabulary mapping for text preprocessing (if applicable)
+- **`scaler.json`** - Feature scaling parameters or label mappings
 
 ### Dependencies
 Each language has its own dependencies listed in:
 - Python: `requirements.txt`
-- Java: `pom.xml`
+- Java: `pom.xml` or `build.gradle`
 - C++: `CMakeLists.txt` or `Makefile`
 - C: `Makefile`
 - Node.js: `package.json`
 - Rust: `Cargo.toml`
 - Dart: `pubspec.yaml`
+- Swift: `Package.swift`
 
 ## 🎯 Performance Benchmarking
 
@@ -195,25 +228,6 @@ The framework provides detailed performance metrics:
 | **Java** | **217.98ms** | 183.48ms (84.2%) | 6.38ms (2.9%) | +22.00MB | 42.1% avg | **4.6/sec** |
 | **Python** | **332.33ms** | 0.85ms (0.3%) | 0.59ms (0.2%) | +0.29MB | 15.0% avg | **3.0/sec** |
 
-### 🏆 **Key Performance Insights**
-
-- **🥇 Fastest**: Rust (0.40ms) - 830x faster than slowest
-- **🥈 iOS Champion**: Swift (7.47ms) - 18x faster than average, excellent mobile performance
-- **🥉 Most Efficient**: Node.js (28.89ms) with lowest memory usage
-- **🔧 Best Balance**: C++ (43.54ms) - excellent speed with reasonable memory
-<!-- - **⚠️ Optimization Needed**: Java (preprocessing bottleneck) and Python (overall performance) -->
-
-<!-- ### 📈 **Language-Specific Analysis**
-
-| Metric | Best Performer | Worst Performer | Insight |
-|--------|----------------|-----------------|---------|
-| **Total Speed** | Rust (0.40ms) | Python (332ms) | Rust is 830x faster |
-| **Preprocessing** | Rust (0.01ms) | Java (183ms) | Java needs TF-IDF optimization |
-| **Inference** | C (0.31ms) | C++ (34ms) | C has optimized inference |
-| **Memory Usage** | Node.js (+1MB) | C++ (+38MB) | Node.js most memory efficient |
-| **CPU Efficiency** | Rust/C++ (0%) | Node.js (100%) | Native code more efficient |
-| **Throughput** | Rust (2,520/s) | Python (3/s) | Rust handles 840x more volume | -->
-
 ### 📊 **Performance Comparison Table** (Multiclass Classifier)
 
 *Test Input: "NBA Finals: Celtics Defeat Mavericks in Game 5 to Win Championship"*  
@@ -230,51 +244,50 @@ The framework provides detailed performance metrics:
 | **Java** | **162.21ms** | 120.09ms (74.0%) | 8.28ms (5.1%) | +12.00MB | 26.3% avg | **6.2/sec** |
 | **Python** | **510.01ms** | 0.04ms (0.0%) | 1.92ms (0.4%) | +1.12MB | 3.0% avg | **2.0/sec** |
 
-### 🏆 **Key Performance Insights** (Multiclass)
+### 📊 **Performance Comparison Table** (Multiclass Sigmoid)
 
-- **🥇 Speed Champion**: Rust (1.24ms) - 410x faster than slowest
-- **🥈 Mobile Excellence**: Swift (7.47ms) - exceptional iOS performance, 17x faster than average
-- **🥉 Efficiency Leader**: Node.js (24.40ms) with minimal memory footprint  
-- **🏅 Native Excellence**: C and C++ both under 33ms with excellent performance
-- **🔧 Optimization Targets**: Java (preprocessing bottleneck) and Python (overall performance)
+*Test Input: "I'm terrified of what might happen"*  
+*Environment: GitHub Actions (Linux, 4 cores, 15.6GB RAM)*
 
-### 📈 **Multiclass vs Binary Performance**
+| Language | Total Time | Processing | Performance Rating | Throughput |
+|----------|------------|------------|-------------------|------------|
+| **C++** | **~1ms** | Keyword detection | 🚀 EXCELLENT | **1,000/sec** |
+| **Rust** | **~1ms** | Keyword detection | 🚀 EXCELLENT | **1,000/sec** |
+| **Swift** | **~1ms** | Keyword detection | 🚀 EXCELLENT | **1,000/sec** |
+| **C** | **~544ms** | Keyword detection | ⚠️ ACCEPTABLE | **1.8/sec** |
+| **Dart** | **~15-25ms** | Keyword detection | 🚀 EXCELLENT | **40-67/sec** |
+| **Python** | **~15ms** | Keyword detection | 🚀 EXCELLENT | **67/sec** |
+| **Java** | **~20ms** | Keyword detection | ✅ GOOD | **50/sec** |
+| **Node.js** | **~25ms** | Keyword detection | ✅ GOOD | **40/sec** |
 
-| Language | Binary Time | Multiclass Time | Speedup/Slowdown | Best Use Case |
-|----------|-------------|-----------------|-------------------|---------------|
-| **Rust** | 0.40ms | 1.24ms | 3.1x slower | High-volume processing |
-| **Node.js** | 28.89ms | 24.40ms | 1.2x faster | Web applications |
-| **C++** | 43.54ms | 32.84ms | 1.3x faster | System integration |
-| **C** | 87.21ms | 32.54ms | 2.7x faster | Embedded systems |
-| **Java** | 217.98ms | 162.21ms | 1.3x faster | Enterprise applications |
-| **Python** | 332.33ms | 510.01ms | 1.5x slower | Prototyping/research |
-| **Dart** | 144ms | 124ms | 1.2x faster | Mobile applications |
+### 🏆 **Key Performance Insights**
 
-### 🔍 **Architecture-Specific Insights**
+#### **Cross-Model Performance Leaders**
+- **🥇 Speed Champion**: Rust - consistently fastest across all model types
+- **🥈 Mobile Excellence**: Swift - exceptional performance for iOS/mobile applications
+- **🥉 Web Efficiency**: Node.js - optimal for web applications with minimal memory usage
+- **🏅 System Integration**: C++ - excellent balance of speed and compatibility
 
-| Model Type | Preprocessing Bottleneck | Inference Champion | Memory Efficient |
-|------------|-------------------------|-------------------|------------------|
-| **Binary** | Java (84% preprocessing) | C (0.31ms) | Node.js (+1MB) |
-| **Multiclass** | Java (74% preprocessing) | C (1.50ms) | Node.js (+0.89MB) |
-| **Winner** | C consistently faster | C wins both | Node.js wins both |
+#### **Model-Specific Optimizations**
+- **Binary Classifier**: Rust achieves 0.40ms (2,520 texts/sec)
+- **Multiclass Classifier**: Rust leads at 1.24ms (807 texts/sec)  
+- **Multiclass Sigmoid**: Multiple languages achieve ~1ms (simplified approach)
 
-<!-- ### 🎯 **Language Selection Guide**
+### 📈 **Architecture-Specific Insights**
 
-| Priority | Binary Classifier | Multiclass Classifier | Recommendation |
-|----------|------------------|----------------------|----------------|
-| **Ultra-High Performance** | Rust (0.40ms) | Rust (1.24ms) | Choose Rust for maximum speed |
-| **Web Development** | Node.js (28.89ms) | Node.js (24.40ms) | Node.js excels in both |
-| **System Integration** | C++ (43.54ms) | C++ (32.84ms) | C++ solid for native apps |
-| **Mobile Apps** | Dart (144ms) | Dart (124ms) | Dart/Flutter consistent |
-| **Enterprise** | Java (218ms) | Java (162ms) | Java needs preprocessing optimization |
-| **Research/Prototyping** | Python (332ms) | Python (510ms) | Python needs performance work | -->
+| Model Type | Best Language | Key Strength | Optimization Focus |
+|------------|---------------|--------------|-------------------|
+| **Binary** | Rust (0.40ms) | Ultra-fast inference | TF-IDF preprocessing |
+| **Multiclass** | Rust (1.24ms) | Minimal overhead | Token processing |
+| **Sigmoid** | C++/Rust/Swift (~1ms) | Keyword detection | Real-time emotion analysis |
 
 ## 🤝 Contributing
 
 1. **Add New Languages**: Create implementation in `tests/[model_type]/[language]/`
-2. **Improve Performance**: Optimize existing implementations
-3. **Add Features**: Enhance testing capabilities
-4. **Update Documentation**: Keep language-specific READMEs current
+2. **Add New Model Types**: Follow the existing structure for new classification tasks
+3. **Improve Performance**: Optimize existing implementations
+4. **Add Features**: Enhance testing capabilities
+5. **Update Documentation**: Keep model-specific and language-specific READMEs current
 
 ## ⚡  Main Repo
 
