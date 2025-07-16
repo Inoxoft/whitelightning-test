@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/binary_classifier/swift/.build/x86_64-apple-macosx/debug/SwiftClassifier.build/master.swiftdeps"
+  },
+  "/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/binary_classifier/swift/SwiftClassifier/main.swift": {
+    "dependencies": "/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/binary_classifier/swift/.build/x86_64-apple-macosx/debug/SwiftClassifier.build/main.d",
+    "object": "/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/binary_classifier/swift/.build/x86_64-apple-macosx/debug/SwiftClassifier.build/main.swift.o",
+    "swiftmodule": "/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/binary_classifier/swift/.build/x86_64-apple-macosx/debug/SwiftClassifier.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/v_kyba/Inoxoft ORG/whitelightning-test/tests/binary_classifier/swift/.build/x86_64-apple-macosx/debug/SwiftClassifier.build/main.swiftdeps"
+  }
+}

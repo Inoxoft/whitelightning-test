@@ -108,8 +108,15 @@ dart test
 
 ### Swift
 ```bash
-cd tests/multiclass_sigmoid/SwiftONNXRunner
-swift run SwiftONNXRunner "I'm terrified but also excited about tomorrow!"
+cd tests/multiclass_sigmoid/swift
+swift run SwiftClassifier "I'm terrified but also excited about tomorrow!"
+```
+
+### JavaScript (Web)
+```bash
+cd tests/multiclass_sigmoid/javascript/
+python -m http.server 8000
+# Open http://localhost:8000 in your browser
 ```
 
 ## 🔧 Recent Fixes & Improvements

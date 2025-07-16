@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Classifier - Web Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #333;
+            min-width: 140px;
+        }
+
+        .result-value {
+            flex: 1;
+            color: #555;
+        }
+
+        .dominant-emotions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .emotion-tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .emotion-tag.fear { background: #fff3cd; color: #856404; }
+        .emotion-tag.happy { background: #d4edda; color: #155724; }
+        .emotion-tag.love { background: #fce4ec; color: #c2185b; }
+        .emotion-tag.sadness { background: #e3f2fd; color: #1565c0; }
+
+        .emotions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .emotion-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .emotion-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .emotion-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .emotion-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .emotion-fill.fear { background: linear-gradient(90deg, #856404, #ffc107); }
+        .emotion-fill.happy { background: linear-gradient(90deg, #155724, #28a745); }
+        .emotion-fill.love { background: linear-gradient(90deg, #c2185b, #e91e63); }
+        .emotion-fill.sadness { background: linear-gradient(90deg, #1565c0, #2196f3); }
+
+        .emotion-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .threshold-indicator {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .examples {
+            margin-top: 30px;
+        }
+
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .example-btn {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .example-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .example-btn .emotions {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .multi-label-note {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #1565c0;
+        }
+
+        .multi-label-note strong {
+            color: #0d47a1;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .emotions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>😊 Emotion Classifier</h1>
+            <p>AI-powered multi-label emotion detection using ONNX Runtime Web</p>
+        </div>
+
+        <div class="multi-label-note">
+            <strong>📝 Note:</strong> This is a multi-label classifier that can detect multiple emotions simultaneously. 
+            Each emotion is independently scored with a threshold of 0.5 for detection.
+        </div>
+
+        <div id="status" class="status loading">
+            🔄 Loading ONNX model and dependencies...
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <textarea 
+                    id="textInput" 
+                    placeholder="Enter text to analyze emotions... (e.g., 'I'm terrified but also excited about tomorrow!')"
+                    disabled
+                ></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button id="analyzeBtn" onclick="analyzeEmotions()" disabled>
+                    😊 Analyze Emotions
+                </button>
+                <button id="clearBtn" onclick="clearResults()" disabled>
+                    🗑️ Clear
+                </button>
+                <button id="benchmarkBtn" onclick="runBenchmark()" disabled>
+                    ⚡ Benchmark
+                </button>
+            </div>
+        </div>
+
+        <div class="examples">
+            <h3>📝 Try these examples:</h3>
+            <div class="example-buttons">
+                <button class="example-btn" onclick="setExample('I\'m terrified but also excited about tomorrow!')">
+                    <div class="emotions">Fear + Happy</div>
+                    I'm terrified but also excited about tomorrow!
+                </button>
+                <button class="example-btn" onclick="setExample('I love spending time with my family, it makes me so happy!')">
+                    <div class="emotions">Love + Happy</div>
+                    I love spending time with my family, it makes me so happy!
+                </button>
+                <button class="example-btn" onclick="setExample('I\'m scared and worried about the upcoming surgery.')">
+                    <div class="emotions">Fear + Sadness</div>
+                    I'm scared and worried about the upcoming surgery.
+                </button>
+                <button class="example-btn" onclick="setExample('This is the happiest day of my life! I feel amazing!')">
+                    <div class="emotions">Happy</div>
+                    This is the happiest day of my life! I feel amazing!
+                </button>
+                <button class="example-btn" onclick="setExample('I\'m heartbroken and feel so sad about what happened.')">
+                    <div class="emotions">Sadness</div>
+                    I'm heartbroken and feel so sad about what happened.
+                </button>
+                <button class="example-btn" onclick="setExample('I absolutely love this! It\'s frightening how good it is!')">
+                    <div class="emotions">Love + Fear</div>
+                    I absolutely love this! It's frightening how good it is!
+                </button>
+                <button class="example-btn" onclick="setExample('The horror movie was terrifying and made me feel anxious.')">
+                    <div class="emotions">Fear</div>
+                    The horror movie was terrifying and made me feel anxious.
+                </button>
+                <button class="example-btn" onclick="setExample('I love you so much, you make me incredibly happy!')">
+                    <div class="emotions">Love + Happy</div>
+                    I love you so much, you make me incredibly happy!
+                </button>
+            </div>
+        </div>
+
+        <div id="results" class="results">
+            <div class="result-item">
+                <span class="result-label">Detected Emotions:</span>
+                <div id="detectedEmotions" class="dominant-emotions"></div>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Input Text:</span>
+                <span id="inputTextResult" class="result-value"></span>
+            </div>
+            
+            <div class="result-item">
+                <span class="result-label">All Emotion Scores:</span>
+                <div class="emotions-grid">
+                    <div class="emotion-item">
+                        <div class="emotion-label">😨 Fear</div>
+                        <div class="emotion-bar">
+                            <div id="fearFill" class="emotion-fill fear" style="width: 0%"></div>
+                        </div>
+                        <div id="fearValue" class="emotion-value">0.0%</div>
+                        <div id="fearThreshold" class="threshold-indicator">Threshold: 50%</div>
+                    </div>
+                    <div class="emotion-item">
+                        <div class="emotion-label">😊 Happy</div>
+                        <div class="emotion-bar">
+                            <div id="happyFill" class="emotion-fill happy" style="width: 0%"></div>
+                        </div>
+                        <div id="happyValue" class="emotion-value">0.0%</div>
+                        <div id="happyThreshold" class="threshold-indicator">Threshold: 50%</div>
+                    </div>
+                    <div class="emotion-item">
+                        <div class="emotion-label">❤️ Love</div>
+                        <div class="emotion-bar">
+                            <div id="loveFill" class="emotion-fill love" style="width: 0%"></div>
+                        </div>
+                        <div id="loveValue" class="emotion-value">0.0%</div>
+                        <div id="loveThreshold" class="threshold-indicator">Threshold: 50%</div>
+                    </div>
+                    <div class="emotion-item">
+                        <div class="emotion-label">😢 Sadness</div>
+                        <div class="emotion-bar">
+                            <div id="sadnessFill" class="emotion-fill sadness" style="width: 0%"></div>
+                        </div>
+                        <div id="sadnessValue" class="emotion-value">0.0%</div>
+                        <div id="sadnessThreshold" class="threshold-indicator">Threshold: 50%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="performance-metrics">
+                <div class="metric">
+                    <div id="totalTime" class="metric-value">-</div>
+                    <div class="metric-label">Total Time (ms)</div>
+                </div>
+                <div class="metric">
+                    <div id="preprocessTime" class="metric-value">-</div>
+                    <div class="metric-label">Preprocessing (ms)</div>
+                </div>
+                <div class="metric">
+                    <div id="inferenceTime" class="metric-value">-</div>
+                    <div class="metric-label">Inference (ms)</div>
+                </div>
+                <div class="metric">
+                    <div id="throughput" class="metric-value">-</div>
+                    <div class="metric-label">Throughput (text/sec)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONNX Runtime Web -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
+    <script src="classifier.js"></script>
+</body>
+</html> 

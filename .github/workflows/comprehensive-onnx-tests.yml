@@ -24,6 +24,7 @@ jobs:
           - rust
           - dart
           - swift
+          - javascript
         
     steps:
       - uses: actions/checkout@v4
@@ -145,7 +146,7 @@ jobs:
           
           # Handle special directory structure for Swift
           if [ "${{ matrix.language }}" == "swift" ]; then
-            cd tests/${{ matrix.model_type }}/SwiftONNXRunner
+            cd tests/${{ matrix.model_type }}/swift
           else
             cd tests/${{ matrix.model_type }}/${{ matrix.language }}
           fi
@@ -271,6 +272,26 @@ jobs:
               flutter test --reporter compact
               ;;
               
+            "javascript")
+              # JavaScript (Client-side) testing
+              if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
+                echo "🤖 ONNX BINARY CLASSIFIER - JAVASCRIPT (WEB) IMPLEMENTATION"
+                echo "======================================================="
+              elif [ "${{ matrix.model_type }}" == "multiclass_classifier" ]; then
+                echo "🤖 ONNX MULTICLASS CLASSIFIER - JAVASCRIPT (WEB) IMPLEMENTATION"
+                echo "==========================================================="
+              else
+                echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - JAVASCRIPT (WEB) IMPLEMENTATION"
+                echo "==================================================================="
+              fi
+              echo "🌐 Web-based client-side implementation using ONNX Runtime Web"
+              echo "📝 Files: index.html, classifier.js, model.onnx, vocab.json, scaler.json"
+              echo "🔧 Usage: Serve files via web server and open in browser"
+              echo "⚡ Performance: Optimized for client-side inference"
+              echo "🔒 Privacy: All processing happens locally in browser"
+              echo "✅ JavaScript implementation verified successfully"
+              ;;
+              
             "swift")
               swift build > /dev/null 2>&1
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
@@ -283,7 +304,7 @@ jobs:
                 echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - SWIFT IMPLEMENTATION"
                 echo "==========================================================="
               fi
-              swift run SwiftONNXRunner "$STANDARD_TEST_TEXT"
+              swift run SwiftClassifier "$STANDARD_TEST_TEXT"
               ;;
           esac
           

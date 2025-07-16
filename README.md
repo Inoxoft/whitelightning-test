@@ -149,7 +149,8 @@ Each language implementation has its own README with specific setup instructions
 - 📁 `tests/[model_type]/nodejs/README.md` - Node.js setup
 - 📁 `tests/[model_type]/rust/README.md` - Rust setup
 - 📁 `tests/[model_type]/dart/README.md` - Dart/Flutter setup
-- 📁 `tests/[model_type]/SwiftONNXRunner/README.md` - Swift/iOS setup
+- 📁 `tests/[model_type]/swift/README.md` - Swift/iOS setup
+- 📁 `tests/[model_type]/javascript/README.md` - Client-side JavaScript/HTML setup
 
 ### 5. **Test Locally**
 Navigate to any language directory and run the tests:

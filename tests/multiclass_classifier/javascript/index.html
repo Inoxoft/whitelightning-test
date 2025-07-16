@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiclass Topic Classifier - Web Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #333;
+            min-width: 120px;
+        }
+
+        .result-value {
+            flex: 1;
+            color: #555;
+        }
+
+        .topic-result {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .topic-business { background: #e3f2fd; color: #1565c0; }
+        .topic-health { background: #e8f5e8; color: #2e7d32; }
+        .topic-politics { background: #fff3e0; color: #ef6c00; }
+        .topic-sports { background: #fce4ec; color: #c2185b; }
+
+        .probabilities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .probability-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .probability-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .probability-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .probability-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .probability-fill.business { background: linear-gradient(90deg, #1565c0, #42a5f5); }
+        .probability-fill.health { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+        .probability-fill.politics { background: linear-gradient(90deg, #ef6c00, #ffa726); }
+        .probability-fill.sports { background: linear-gradient(90deg, #c2185b, #ec407a); }
+
+        .probability-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .examples {
+            margin-top: 30px;
+        }
+
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .example-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .example-btn {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .example-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .example-btn .category {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .probabilities {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📰 Topic Classifier</h1>
+            <p>AI-powered topic classification using ONNX Runtime Web</p>
+        </div>
+
+        <div id="status" class="status loading">
+            🔄 Loading ONNX model and dependencies...
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <textarea 
+                    id="textInput" 
+                    placeholder="Enter text to classify its topic... (e.g., news articles, social media posts, etc.)"
+                    disabled
+                ></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button id="analyzeBtn" onclick="classifyTopic()" disabled>
+                    🔍 Classify Topic
+                </button>
+                <button id="clearBtn" onclick="clearResults()" disabled>
+                    🗑️ Clear
+                </button>
+                <button id="benchmarkBtn" onclick="runBenchmark()" disabled>
+                    ⚡ Benchmark
+                </button>
+            </div>
+        </div>
+
+        <div class="examples">
+            <h3>📝 Try these examples:</h3>
+            <div class="example-buttons">
+                <button class="example-btn" onclick="setExample('NBA Finals: Celtics Defeat Mavericks in Game 5 to Win Championship')">
+                    <div class="category">Sports</div>
+                    NBA Finals: Celtics Defeat Mavericks in Game 5 to Win Championship
+                </button>
+                <button class="example-btn" onclick="setExample('Apple announces new iPhone with advanced AI capabilities and improved camera system')">
+                    <div class="category">Business</div>
+                    Apple announces new iPhone with advanced AI capabilities
+                </button>
+                <button class="example-btn" onclick="setExample('President signs new legislation on healthcare reform and infrastructure spending')">
+                    <div class="category">Politics</div>
+                    President signs new legislation on healthcare reform
+                </button>
+                <button class="example-btn" onclick="setExample('Scientists discover breakthrough treatment for diabetes using gene therapy techniques')">
+                    <div class="category">Health</div>
+                    Scientists discover breakthrough treatment for diabetes
+                </button>
+                <button class="example-btn" onclick="setExample('Stock market reaches new highs as tech companies report strong quarterly earnings')">
+                    <div class="category">Business</div>
+                    Stock market reaches new highs as tech companies report earnings
+                </button>
+                <button class="example-btn" onclick="setExample('World Cup soccer tournament kicks off with spectacular opening ceremony')">
+                    <div class="category">Sports</div>
+                    World Cup soccer tournament kicks off with opening ceremony
+                </button>
+                <button class="example-btn" onclick="setExample('New study shows Mediterranean diet reduces risk of heart disease by 30 percent')">
+                    <div class="category">Health</div>
+                    Mediterranean diet reduces risk of heart disease by 30 percent
+                </button>
+                <button class="example-btn" onclick="setExample('Congress votes on new climate change bill amid heated political debate')">
+                    <div class="category">Politics</div>
+                    Congress votes on new climate change bill amid heated debate
+                </button>
+            </div>
+        </div>
+
+        <div id="results" class="results">
+            <div class="result-item">
+                <span class="result-label">Predicted Topic:</span>
+                <span id="topicResult" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Input Text:</span>
+                <span id="inputTextResult" class="result-value"></span>
+            </div>
+            
+            <div class="result-item">
+                <span class="result-label">All Probabilities:</span>
+                <div class="probabilities">
+                    <div class="probability-item">
+                        <div class="probability-label">💼 Business</div>
+                        <div class="probability-bar">
+                            <div id="businessFill" class="probability-fill business" style="width: 0%"></div>
+                        </div>
+                        <div id="businessValue" class="probability-value">0.0%</div>
+                    </div>
+                    <div class="probability-item">
+                        <div class="probability-label">🏥 Health</div>
+                        <div class="probability-bar">
+                            <div id="healthFill" class="probability-fill health" style="width: 0%"></div>
+                        </div>
+                        <div id="healthValue" class="probability-value">0.0%</div>
+                    </div>
+                    <div class="probability-item">
+                        <div class="probability-label">🏛️ Politics</div>
+                        <div class="probability-bar">
+                            <div id="politicsFill" class="probability-fill politics" style="width: 0%"></div>
+                        </div>
+                        <div id="politicsValue" class="probability-value">0.0%</div>
+                    </div>
+                    <div class="probability-item">
+                        <div class="probability-label">⚽ Sports</div>
+                        <div class="probability-bar">
+                            <div id="sportsFill" class="probability-fill sports" style="width: 0%"></div>
+                        </div>
+                        <div id="sportsValue" class="probability-value">0.0%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="performance-metrics">
+                <div class="metric">
+                    <div id="totalTime" class="metric-value">-</div>
+                    <div class="metric-label">Total Time (ms)</div>
+                </div>
+                <div class="metric">
+                    <div id="preprocessTime" class="metric-value">-</div>
+                    <div class="metric-label">Preprocessing (ms)</div>
+                </div>
+                <div class="metric">
+                    <div id="inferenceTime" class="metric-value">-</div>
+                    <div class="metric-label">Inference (ms)</div>
+                </div>
+                <div class="metric">
+                    <div id="throughput" class="metric-value">-</div>
+                    <div class="metric-label">Throughput (text/sec)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONNX Runtime Web -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
+    <script src="classifier.js"></script>
+</body>
+</html> 

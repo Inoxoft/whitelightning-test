@@ -69,10 +69,16 @@ tests/multiclass_classifier/
 │   ├── test_onnx_model.c      # C implementation
 │   ├── Makefile               # Build configuration
 │   └── onnx_runtime_libs/     # ONNX Runtime libraries
-└── SwiftONNXRunner/
-    ├── Package.swift          # Swift package configuration
-    └── Sources/SwiftONNXRunner/
-        └── main.swift         # Swift implementation
+├── swift/
+│   ├── Package.swift          # Swift package configuration
+│   └── SwiftClassifier/
+│       └── main.swift         # Swift implementation
+└── javascript/
+    ├── index.html             # Web interface
+    ├── classifier.js          # JavaScript implementation
+    ├── model.onnx             # ONNX model file
+    ├── vocab.json             # Token vocabulary
+    └── scaler.json            # Category mappings
 ```
 
 ## 🔧 Technical Specifications
@@ -164,8 +170,15 @@ make
 
 ### Swift
 ```bash
-cd tests/multiclass_classifier/SwiftONNXRunner/
+cd tests/multiclass_classifier/swift/
 swift run
+```
+
+### JavaScript (Web)
+```bash
+cd tests/multiclass_classifier/javascript/
+python -m http.server 8000
+# Open http://localhost:8000 in your browser
 ```
 
 ## 📊 Example Output
