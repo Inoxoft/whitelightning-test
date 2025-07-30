@@ -201,7 +201,52 @@ Each language has its own dependencies listed in:
 - Node.js: `package.json`
 - Rust: `Cargo.toml`
 - Dart: `pubspec.yaml`
-- Swift: `Package.swift`
+
+## 🔧 Troubleshooting
+
+### GitHub Actions Warnings
+
+**Git Exit Code 128 Errors**
+These are caused by Swift Package Manager fetching dependencies in CI:
+- ✅ **Not a critical issue** - Tests still run successfully
+- 🔧 **Fixed in latest workflow** - Added git configuration and caching
+- 🍎 **Swift-specific** - Only affects Swift implementations
+
+**macOS Migration Warnings**
+GitHub Actions informational notices:
+```
+The macos-latest label will migrate to macOS 15 beginning August 4, 2025
+```
+- ✅ **Not an error** - Just an informational notice
+- 🔧 **Fixed** - Updated to use `macos-14` explicitly
+
+### Local Development Issues
+
+**Swift Package Manager Problems**
+If you encounter git issues locally:
+```bash
+cd tests/binary_classifier/swift
+swift package reset
+swift package resolve
+swift build
+```
+
+**Missing Dependencies**
+Ensure all language runtimes are installed:
+- Python 3.8+, Java 17+, Node.js 16+, Rust stable
+- Flutter 3.16+, Swift 5.7+, GCC/Clang for C/C++
+
+**Performance Issues**
+For faster local testing:
+```bash
+# Test single language-model combination
+cd tests/binary_classifier/python
+python test_onnx_model.py "Your test text"
+
+# Use release builds
+cargo build --release  # Rust
+swift build --configuration release  # Swift
+```
 
 ## 🎯 Performance Benchmarking
 

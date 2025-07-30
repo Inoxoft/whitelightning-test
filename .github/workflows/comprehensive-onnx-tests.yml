@@ -6,7 +6,7 @@ on:
 jobs:
   comprehensive-tests:
     name: ${{ matrix.model_type }} - ${{ matrix.language }}
-    runs-on: ${{ matrix.language == 'swift' && 'macos-latest' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.language == 'swift' && 'macos-14' || 'ubuntu-latest' }}
     
     strategy:
       fail-fast: false
@@ -28,6 +28,14 @@ jobs:
         
     steps:
       - uses: actions/checkout@v4
+      
+      # Configure git for CI environment
+      - name: Configure Git
+        if: matrix.language == 'swift'
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git config --global init.defaultBranch main
       
       - name: Set up Python
         if: matrix.language == 'python'
@@ -131,6 +139,17 @@ jobs:
           echo "🍎 Swift environment ready - using basic verification mode"
           echo "📱 Note: Full iOS project setup would require CocoaPods and Xcode workspace"
           
+      # Cache Swift Package Manager dependencies
+      - name: Cache Swift Packages
+        if: matrix.language == 'swift'
+        uses: actions/cache@v4
+        with:
+          path: |
+            tests/${{ matrix.model_type }}/swift/.build
+            ~/.cache/org.swift.swiftpm
+          key: ${{ runner.os }}-swift-${{ hashFiles('tests/${{ matrix.model_type }}/swift/Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
 
           
       - name: Run Tests
@@ -397,7 +416,16 @@ jobs:
               ;;
               
             "swift")
-              swift build > /dev/null 2>&1
+              # Configure Swift Package Manager with retry logic
+              echo "🔧 Resolving Swift package dependencies..."
+              swift package resolve || swift package reset && swift package resolve
+              
+              echo "🏗️ Building Swift project..."
+              swift build --configuration release > /dev/null 2>&1 || {
+                echo "⚠️ Release build failed, trying debug build..."
+                swift build > /dev/null 2>&1
+              }
+              
               if [ "${{ matrix.model_type }}" == "binary_classifier" ]; then
                 echo "🤖 ONNX BINARY CLASSIFIER - SWIFT IMPLEMENTATION"
                 echo "=============================================="
@@ -408,6 +436,9 @@ jobs:
                 echo "🤖 ONNX MULTICLASS SIGMOID CLASSIFIER - SWIFT IMPLEMENTATION"
                 echo "==========================================================="
               fi
+              
+              # Run with fallback to debug if release fails
+              swift run --configuration release SwiftClassifier "$STANDARD_TEST_TEXT" 2>/dev/null || \
               swift run SwiftClassifier "$STANDARD_TEST_TEXT"
               ;;
           esac
