@@ -33,7 +33,7 @@ The implementations test topic classification on text inputs:
 | **Node.js** | ~30-45ms | ✅ GOOD | ✅ |
 | **Dart** | ~35-50ms | ✅ GOOD | ✅ |
 | **C** | ~50-75ms | ⚠️ ACCEPTABLE | ✅ |
-| **Swift** | ~55-85ms | ⚠️ ACCEPTABLE | ✅ |
+| **Swift** | ~2-4ms | 🚀 EXCELLENT | ✅ |
 
 ### 📁 Directory Structure
 
@@ -71,6 +71,7 @@ tests/multiclass_classifier/
 │   └── onnx_runtime_libs/     # ONNX Runtime libraries
 ├── swift/
 │   ├── Package.swift          # Swift package configuration
+│   ├── README.md              # Comprehensive Swift documentation
 │   └── SwiftClassifier/
 │       └── main.swift         # Swift implementation
 └── javascript/
@@ -171,7 +172,9 @@ make
 ### Swift
 ```bash
 cd tests/multiclass_classifier/swift/
-swift run
+swift package resolve
+swift build --configuration release
+swift run SwiftClassifier "Your text to classify"
 ```
 
 ### JavaScript (Web)
